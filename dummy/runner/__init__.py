@@ -1,13 +1,32 @@
 from dummy import config
+from dummy.models import Test
 
 import os
+import glob
 import subprocess
 
 # subprogram run
 def run( args ):
-	# assemble the path to the test/suite
-	# and make sure it exists
-	path = os.path.join( config.TESTS_DIR, args.name )
-	assert os.path.exists( path ), "Sorry, could not find the test `%s`" % args.name
+	name = args.name
+	queue = []
 
-	subprocess.call([ config.TEST_RUNNER, path ])
+	# check if we need to run a whole test suite
+	if args.suite:
+		# make sure to have a valid test suite name
+		suite = config.SUITES.get( name )
+		assert suite is not None,\
+			"We looked, but a test suite with name `%s` was not found." % name
+
+		for name in suite:
+			for fname in Test.glob( name ):
+				queue.append( Test( fname ))
+
+	# if not running a whole suite
+	# just queue the one named test
+	else:
+		queue.append( Test( name ))
+
+	# run the tests in the queue
+	for t in queue:
+		print( "Running %s" % t.name )
+		t.run()
