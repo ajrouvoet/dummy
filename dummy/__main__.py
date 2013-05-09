@@ -11,6 +11,14 @@ sys.path.append(
 parser = argparse.ArgumentParser( description='Dummy test aggregation' )
 sub = parser.add_subparsers()
 
+# debug switch
+parser.add_argument(
+	'-D',
+	'--debug',
+	help="output stacktrace on error",
+	action="store_true"
+)
+
 # `dummy <test>`
 runner = sub.add_parser( 'run', help="run tests" )
 runner.add_argument( 'name', help="test name (or suite name if -S is given)" )
@@ -21,7 +29,7 @@ runner.add_argument(
 	action="store_true"
 )
 
-parser.set_defaults( func='run' )
+runner.set_defaults( func='run' )
 
 if __name__ == "__main__":
 	args = parser.parse_args()
@@ -32,6 +40,11 @@ if __name__ == "__main__":
 		# errors from loading the configuration
 		from dummy.runner import run
 
-		if args.func == 'run': run( args )
+		if not hasattr( args, 'func' ): parser.print_help()
+		elif args.func == 'run': run( args )
 	except Exception as e:
-		print( "Error: %s" % str( e ))
+		# to trace or not to trace
+		if args.debug:
+			raise e
+		else:
+			print( "Error: %s" % str( e ))
