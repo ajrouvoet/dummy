@@ -5,11 +5,30 @@ import os
 import glob
 import subprocess
 
+class Runner:
+
+	def __init__( self ):
+		self.queue = []
+		self.completed = []
+
+	def add( self, test ):
+		self.queue.append( test )
+
+	def run( self ):
+		""" run the tests in the queue
+		"""
+		while len( self.queue ) != 0:
+			test = self.queue.pop()
+			test.run()
+
+			self.completed.append( test )
+
 # subprogram run
 def run( args ):
 	name = args.name
-	queue = []
+	runner = Runner()
 
+	# discover the tests we need to run and add them to the runner
 	# check if we need to run a whole test suite
 	if args.suite:
 		# make sure to have a valid test suite name
@@ -19,14 +38,12 @@ def run( args ):
 
 		for name in suite:
 			for fname in Test.glob( name ):
-				queue.append( Test( fname ))
+				runner.add( Test( fname ))
 
 	# if not running a whole suite
 	# just queue the one named test
 	else:
-		queue.append( Test( name ))
+		runner.append( Test( name ))
 
-	# run the tests in the queue
-	for t in queue:
-		print( "Running %s" % t.name )
-		t.run()
+	# run the tests
+	runner.run()
