@@ -8,8 +8,6 @@ sys.path.append(
 	os.path.abspath( os.path.join( os.path.dirname( __file__ ), '../' ))
 )
 
-from dummy.runner import run
-
 parser = argparse.ArgumentParser( description='Dummy test aggregation' )
 sub = parser.add_subparsers()
 
@@ -23,13 +21,17 @@ runner.add_argument(
 	action="store_true"
 )
 
-parser.set_defaults( func=run )
+parser.set_defaults( func='run' )
 
 if __name__ == "__main__":
 	args = parser.parse_args()
 
 	# run the subprogram
 	try:
-		args.func( args )
+		# do this here, to prevent to catch
+		# errors from loading the configuration
+		from dummy.runner import run
+
+		if args.func == 'run': run( args )
 	except Exception as e:
 		print( "Error: %s" % str( e ))
