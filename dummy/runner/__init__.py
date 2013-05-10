@@ -22,6 +22,7 @@ class Runner:
 			test.run()
 
 			self.completed.append( test )
+			logger.info( "Run test `%s`" % test.name )
 
 # subprogram run
 def run( args ):
@@ -38,12 +39,12 @@ def run( args ):
 
 		for name in suite:
 			for fname in Test.glob( name ):
-				runner.add( Test( fname ))
+				runner.add_test( Test( fname ))
 
 	# if not running a whole suite
 	# just queue the one named test
 	else:
-		runner.append( Test( name ))
+		runner.add_test( Test( name ))
 
 	# run the tests
 	runner.run()
