@@ -14,7 +14,7 @@ root.setLevel( logging.DEBUG )
 ch = logging.StreamHandler()
 ch.setLevel( logging.DEBUG if DEBUG else logging.INFO )
 
-formatter = logging.Formatter( "\t >> %(name)s (%(levelname)s):\t%(message)s" )
+formatter = logging.Formatter( "  >> %(name)s (%(levelname)s):\t%(message)s" )
 ch.setFormatter( formatter )
 
 root.addHandler( ch )
