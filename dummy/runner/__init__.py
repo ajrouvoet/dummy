@@ -1,18 +1,31 @@
 from dummy import config
-from dummy.models import Test
+from dummy.models import Test, Metric
 
 import os
 import glob
 import subprocess
+import logging
+
+logger = logging.getLogger( __name__ )
 
 class Runner:
 
 	def __init__( self ):
 		self.queue = []
 		self.completed = []
+		self.metrics = {}
 
-	def add( self, test ):
+		self.load_metrics()
+
+	def add_test( self, test ):
 		self.queue.append( test )
+
+	def load_metrics( self ):
+		for name, metric in config.METRICS.items():
+			m = Metric.parse( name, metric )
+			self.metrics[ name ] = m
+
+			logger.debug( "Loaded metric `%s`" % m.name )
 
 	def run( self ):
 		""" run the tests in the queue
