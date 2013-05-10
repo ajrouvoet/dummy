@@ -1,5 +1,6 @@
 import os
 import glob
+import json
 
 from dummy import config
 from dummy.utils import subprocess
@@ -36,18 +37,63 @@ class Test:
 
 		return self.output
 
+class Collector:
+
+	# output types
+	VALUE = 'value'
+	JSON = 'json'
+
+	TYPE_CHOICES = ( VALUE, JSON )
+
+	def __init__( self, path, type='value' ):
+		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
+
+		self.path = path
+		self.type = type
+
+	def collect( self, test ):
+		assert os.path.exists( self.path ), "Could not find the collector script: %s" % self.path
+
+		return self.parse_output( subprocess([ self.path, test.name ]))
+
+	def parse_output( self, output ):
+		""" Parse the output of the collection script if necessary
+
+			returns:
+				parsed output or unchanged output if type == VALUE
+		"""
+		if self.type == Collector.JSON:
+			try:
+				output = json.loads( output )
+			except ValueError as e:
+				raise ValueError( "Collector `%s` did not return valid JSON" % self.path )
+
+		return output
+
 class Metric:
 
 	@classmethod
-	def parse( cls, name, json ):
-		assert len( name ) > 0
-		assert json.get( 'collector' ) is not None, "Metric `%s` has no collector" % name
+	def parse( cls, name, conf ):
+		""" Parse a metric instance from a metric configuration dictionary
 
-		return cls( name, Collector( json.get( 'collector' )) )
+			return:
+				Metric instance
+		"""
+		coll = conf.get( 'collector' )
+
+		assert len( name ) > 0
+		assert coll is not None, "Metric `%s` has no collector" % name
+
+		output_type = conf.get( 'type', Collector.VALUE )
+
+		return cls(
+			name,
+			collector=Collector( coll, type=output_type )
+		)
 
 	def __init__( self, name, collector ):
+		assert isinstance( collector, Collector ), \
+			"Metric constructor collector must be of type Collector"
+
 		self.name = name
-
-	def collect( self ):
-		pass
-
+		self.collector = collector
