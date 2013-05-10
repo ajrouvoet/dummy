@@ -2,6 +2,7 @@
 import sys
 import argparse
 import os
+import logging
 
 # make sure to add the dummy module directory to the path
 sys.path.append(
@@ -19,7 +20,7 @@ parser.add_argument(
 	action="store_true"
 )
 
-# `dummy <test>`
+# `dummy run [-s] <name>`
 runner = sub.add_parser( 'run', help="run tests" )
 runner.add_argument( 'name', help="test name (or suite name if -S is given)" )
 runner.add_argument(
@@ -47,4 +48,4 @@ if __name__ == "__main__":
 		if args.debug:
 			raise e
 		else:
-			print( "Error: %s" % str( e ))
+			logging.getLogger( __name__ ).error( str( e ))
