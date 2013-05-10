@@ -1,9 +1,12 @@
 import os
 import glob
 import json
+import logging
 
 from dummy import config
-from dummy.utils import subprocess
+from dummy.utils import subprocess, create_dir
+
+logger = logging.getLogger( __name__ )
 
 class Test:
 
@@ -24,18 +27,29 @@ class Test:
 
 		self.name = name
 		self.path = os.path.join( config.TESTS_DIR, name )
+		self._metrics = {}
+
 		assert os.path.exists( self.path ), "Sorry, could not find the test `%s`" % name
 
-		# readonly property
-		self._output = None
-
-	@property
-	def output( self ): return self._output
+	def log_path( self ):
+		return os.path.join( config.TEST_OUTPUT_DIR, "%s.log" % self.name )
 
 	def run( self ):
-		self._output = subprocess([ config.TEST_RUNNER, self.path ])
+		output = subprocess([ config.TEST_RUNNER, self.path ], test=self )
+		path = self.log_path()
 
-		return self.output
+		# write the test output temporarily to a file
+		# for the collectors to use
+		create_dir( path )
+		with open( path, 'w' ) as fh:
+			fh.write( output )
+
+		return output
+
+	def run_metric( self, metric ):
+		self._metrics[ metric.name ] = metric.collect( self )
+
+		return self._metrics[ metric.name ]
 
 class Collector:
 
@@ -54,7 +68,11 @@ class Collector:
 	def collect( self, test ):
 		assert os.path.exists( self.path ), "Could not find the collector script: %s" % self.path
 
-		return self.parse_output( subprocess([ self.path, test.name ]))
+		# run the collector script
+		output = subprocess([ self.path, test.name ], test=test )
+
+		# parse the output
+		return self.parse_output( output )
 
 	def parse_output( self, output ):
 		""" Parse the output of the collection script if necessary
@@ -97,3 +115,6 @@ class Metric:
 
 		self.name = name
 		self.collector = collector
+
+	def collect( self, test ):
+		return self.collector.collect( test )
