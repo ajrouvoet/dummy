@@ -97,11 +97,11 @@ class Metric:
 		if isinstance(coll, str):
 			#If it is a string, then it's a path to a script.
 			return cls(
-			name,
-			collector=Script( coll, type=output_type )
+				name,
+				collector=Script( coll, type=output_type )
 			)
 		else:
-			return cls(name, coll)
+			return cls(name, collector=coll)
 
 	def __init__( self, name, collector ):
 		assert isinstance( collector, Collector ), \
