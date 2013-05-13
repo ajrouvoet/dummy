@@ -23,9 +23,21 @@ def create_dir( fpath ):
 			raise e
 
 def plugin_environ( test=None ):
+	""" extend a copy of os.environ with some testing environ vars.
+		these include the config.ENV names.
+
+		kwargs:
+			test {Test}:
+				for setting optional test specific variables
+				(TEST_NAME, TEST_LOG)
+
+		return:
+			environment {dict}
+	"""
 	env = os.environ.copy()
-	env[ 'TESTS_DIR' ] = config.TESTS_DIR
-	env[ 'TEMP_DIR' ] = config.TEMP_DIR
+
+	for name in config.ENV:
+		env[ name ] = getattr( config, name )
 
 	if test is not None:
 		env[ 'TEST_NAME' ] = test.name
@@ -39,7 +51,7 @@ def subprocess( args, test=None, **kwargs ):
 
 		The environment is merged with the `plugin_environ()` env.
 
-		keyword arguments:
+		kwargs:
 			see subprocess.Popen for kwargs (except stderr and stdout)
 
 			test: test instance; used to set a proper env.
