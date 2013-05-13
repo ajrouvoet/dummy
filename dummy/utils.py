@@ -1,7 +1,6 @@
 import os
 import logging
 from subprocess import Popen, PIPE
-
 from dummy import config
 
 logger = logging.getLogger( __name__ )

@@ -1,10 +1,10 @@
 import os
 import glob
-import json
 import logging
 
 from dummy import config
 from dummy.utils import subprocess, create_dir
+from dummy.collector import Collector
 
 logger = logging.getLogger( __name__ )
 
@@ -51,47 +51,21 @@ class Test:
 
 		return self._metrics[ metric.name ]
 
-class Collector:
-	""" Abstract base class Collector
-	"""
-
-	# output types
-	VALUE = 'value'
-	JSON = 'json'
-
-	TYPE_CHOICES = ( VALUE, JSON )
-
-	def __init__( self, type="value" ):
-		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
-		self.type = type
-
-	def collect( self, test ):
-		raise NotImplementedError( "Not implemented" )
-
-	def parse_output( self, output ):
-		""" Parse the output of the collection script if necessary
-
-			returns:
-				parsed output or unchanged output if type == VALUE
-		"""
-		if self.type == Collector.JSON:
-			try:
-				output = json.loads( output )
-			except ValueError as e:
-				raise ValueError( "Collector `%s` did not return valid JSON" % self.path )
-
-		return output
-
 class Script( Collector ):
 	""" A class for running collector scripts.
 	"""
 
 	def __init__( self, path, type='value' ):
-		assert os.path.exists( self.path ), "Could not find the collector script: %s" % self.path
+		super( Script, self ).__init__( type=type )
+
+		assert os.path.exists( path ), "Could not find the collector script: %s" % path
 		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
 
-		self.path = path
-		self.type = type
+		self._path = path
+
+	@property
+	def path( self ):
+		return self._path
 
 	def collect( self, test ):
 		# run the collector script
@@ -118,7 +92,7 @@ class Metric:
 
 		if isinstance( coll, Collector ):
 			# if it is a class, initiate it as a collector
-			return cls( name, collector=coll() )
+			return cls( name, collector=coll )
 		else:
 			# if it is a string, then it's a path to a script.
 			return cls(

@@ -1,11 +1,12 @@
-from dummy.collectors import Collector
+import os
+from dummy.collector import Collector
 
 class PassFail( Collector ):
 	""" A class for Pass/Fail collecting
 	"""
 
 	def __init__( self ):
-		super( type="value" )
+		super( PassFail, self ).__init__( type="value" )
 
 	def collect( self, test ):
 		# mimic script
@@ -16,3 +17,4 @@ class PassFail( Collector ):
 					result = 'PASS'
 
 		return self.parse_output( result )
+
