@@ -62,7 +62,7 @@ METRICS = {
 
 	# passing/failing of a test is also configured as a collector
 	'pass/fail': {
-		'collector': PassFail,
+		'collector': PassFail(),
 
 		# we can configure what statistics are gathered over the different tests
 		# several statistics engines exist in the python module `dummy.statistics.engines`

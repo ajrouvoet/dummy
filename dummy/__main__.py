@@ -37,15 +37,16 @@ if __name__ == "__main__":
 
 	# run the subprogram
 	try:
-		# do this here, to prevent to catch
+		# do this here, to catch
 		# errors from loading the configuration
 		from dummy.runner import run
 
 		if not hasattr( args, 'func' ): parser.print_help()
 		elif args.func == 'run': run( args )
+
 	except Exception as e:
 		# to trace or not to trace
 		if args.debug:
 			raise e
 		else:
-			logging.getLogger( __name__ ).error( str( e ))
+			logging.getLogger( 'dummy' ).error( str( e ))

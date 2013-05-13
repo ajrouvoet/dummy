@@ -53,8 +53,11 @@ class Runner:
 			# collect the metrics
 			logger.info( "Metrics collected:" )
 			for m in self.metrics.values():
-				output = test.run_metric( m )
-				logger.info( "\t%s: %s" % ( m.name, str( output ).strip() ))
+				output = str( test.run_metric( m )).strip()
+				logger.info( "\t%s: %s" % (
+					m.name,
+					"%s ..." % output[:20] if len( output ) > 20 else output
+				))
 
 # subprogram run
 def run( args ):
