@@ -7,7 +7,7 @@ class Storage:
 	JSON = 'json'
 	METHOD_CHOICES = ( JSON ) #Extend with .xml,.csv?
 
-	def __init__( self, runner, method='json' )
+	def __init__( self, runner, method='json' ):
 		assert method in METHOD_CHOICES, "Unkown storage method:`%s`" % method
 		self.method = method
 		self.runner = runner
