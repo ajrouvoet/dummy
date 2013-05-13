@@ -52,6 +52,8 @@ class Test:
 		return self._metrics[ metric.name ]
 
 class Collector:
+	""" Abstract base class Collector
+	"""
 
 	# output types
 	VALUE = 'value'
@@ -59,20 +61,8 @@ class Collector:
 
 	TYPE_CHOICES = ( VALUE, JSON )
 
-	def __init__( self, path, type='value' ):
-		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
-
-		self.path = path
-		self.type = type
-
 	def collect( self, test ):
-		assert os.path.exists( self.path ), "Could not find the collector script: %s" % self.path
-
-		# run the collector script
-		output = subprocess([ self.path, test.name ], test=test )
-
-		# parse the output
-		return self.parse_output( output )
+		raise NotImplementedError( "Not implemented" )
 
 	def parse_output( self, output ):
 		""" Parse the output of the collection script if necessary
@@ -87,7 +77,7 @@ class Collector:
 				raise ValueError( "Collector `%s` did not return valid JSON" % self.path )
 
 		return output
-
+		
 class Metric:
 
 	@classmethod
@@ -104,10 +94,14 @@ class Metric:
 
 		output_type = conf.get( 'type', Collector.VALUE )
 
-		return cls(
-			name,
-			collector=Collector( coll, type=output_type )
-		)
+		if isinstance(coll, str):
+			#If it is a string, then it's a path to a script.
+			return cls(
+				name,
+				collector=Script( coll, type=output_type )
+			)
+		else:
+			return cls(name, collector=coll)
 
 	def __init__( self, name, collector ):
 		assert isinstance( collector, Collector ), \
@@ -118,3 +112,4 @@ class Metric:
 
 	def collect( self, test ):
 		return self.collector.collect( test )
+		

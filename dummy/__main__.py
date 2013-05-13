@@ -22,7 +22,7 @@ parser.add_argument(
 
 # `dummy run [-s] <name>`
 runner = sub.add_parser( 'run', help="run tests" )
-runner.add_argument( 'name', help="test name (or suite name if -S is given)" )
+runner.add_argument( 'name', help="test name (or suite name if -s is given)" )
 runner.add_argument(
 	'-s',
 	'--suite',

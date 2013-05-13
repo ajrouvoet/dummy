@@ -2,6 +2,7 @@
 	All CAPITALIZED names are settings
 """
 from dummy.statistics.engines import count, avg
+from dummy.collectors import *
 
 TEMP = '.tmp' # directory for temp files
 TESTS = 'tests' # directory with all the tests
@@ -53,6 +54,7 @@ METRICS = {
 	'pass/fail': {
 		# well, we assume you have enough examples
 
+		'collector': PassFail,
 
 		# we can configure what statistics are gathered over the different tests
 		# several statistics engines exist in the python module `dummy.statistics.engines`
