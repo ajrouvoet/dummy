@@ -3,6 +3,7 @@ import os
 TEMP_DIR = '.tmp' # directory for temp files
 TESTS_DIR = 'tests' # directory with all the tests
 TEST_OUTPUT_DIR = os.path.join( TEMP_DIR, 'logs' )
+TARGET_DIR = 'results' # Store results in this directory
 SRC_DIR = 'src'
 
 ENV = [
