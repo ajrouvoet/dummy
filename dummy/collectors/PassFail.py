@@ -1,4 +1,5 @@
 from dummy.collectors import Collector
+from dummy.models import Test
 
 class PassFail(Collector):
 	""" A class for Pass/Fail collecting
@@ -9,6 +10,10 @@ class PassFail(Collector):
 		self.type = type
 
 	def collect(self, test):
-		#Code to check if tests have passed or not.
-		output = 'success' #Placeholder
+		#mimic script
+		output = 'FAIL'
+		with open('test.path' + 'sim_out.txt', 'r') as sim_out:
+			for line in sim_out:
+				if 'PASS' in line:
+					output = 'PASS'
 		return self.parse_output(output)
