@@ -52,8 +52,6 @@ METRICS = {
 
 	# passing/failing of a test is also configured as a collector
 	'pass/fail': {
-		# well, we assume you have enough examples
-
 		'collector': PassFail,
 
 		# we can configure what statistics are gathered over the different tests

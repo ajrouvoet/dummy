@@ -61,6 +61,10 @@ class Collector:
 
 	TYPE_CHOICES = ( VALUE, JSON )
 
+	def __init__( self, type="value" ):
+		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
+		self.type = type
+
 	def collect( self, test ):
 		raise NotImplementedError( "Not implemented" )
 
@@ -77,7 +81,25 @@ class Collector:
 				raise ValueError( "Collector `%s` did not return valid JSON" % self.path )
 
 		return output
-		
+
+class Script( Collector ):
+	""" A class for running collector scripts.
+	"""
+
+	def __init__( self, path, type='value' ):
+		assert os.path.exists( self.path ), "Could not find the collector script: %s" % self.path
+		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
+
+		self.path = path
+		self.type = type
+
+	def collect( self, test ):
+		# run the collector script
+		output = subprocess([ self.path, test.name ], test=test )
+
+		# parse the output
+		return self.parse_output( output )
+
 class Metric:
 
 	@classmethod
@@ -94,14 +116,15 @@ class Metric:
 
 		output_type = conf.get( 'type', Collector.VALUE )
 
-		if isinstance(coll, str):
-			#If it is a string, then it's a path to a script.
+		if isinstance( coll, Collector ):
+			# if it is a class, initiate it as a collector
+			return cls( name, collector=coll() )
+		else:
+			# if it is a string, then it's a path to a script.
 			return cls(
 				name,
 				collector=Script( coll, type=output_type )
 			)
-		else:
-			return cls(name, collector=coll)
 
 	def __init__( self, name, collector ):
 		assert isinstance( collector, Collector ), \
@@ -112,4 +135,4 @@ class Metric:
 
 	def collect( self, test ):
 		return self.collector.collect( test )
-		
+
