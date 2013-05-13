@@ -14,7 +14,7 @@ class Collector:
 		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
 		self.type = type
 
-	def collect( self, test ):
+	def collect( self, test, env={} ):
 		raise NotImplementedError( "Not implemented" )
 
 	def parse_output( self, output ):
