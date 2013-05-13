@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 from dummy import config
-from dummy.utils import subprocess, create_dir
+from dummy.utils import subprocess, create_dir, plugin_environ
 from dummy.collector import Collector
 
 logger = logging.getLogger( __name__ )
@@ -98,7 +98,7 @@ class Script( Collector ):
 	def path( self ):
 		return self._path
 
-	def collect( self, test ):
+	def collect( self, test, env={} ):
 		# run the collector script
 		output = subprocess([ self.path, test.name ], test=test )
 
@@ -139,5 +139,4 @@ class Metric:
 		self.collector = collector
 
 	def collect( self, test ):
-		return self.collector.collect( test )
-
+		return self.collector.collect( test, env=plugin_environ() )
