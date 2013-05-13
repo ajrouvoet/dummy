@@ -4,8 +4,18 @@
 from dummy.statistics.engines import count, avg
 from dummy.collectors import *
 
-TEMP = '.tmp' # directory for temp files
-TESTS = 'tests' # directory with all the tests
+TEMP_DIR = '.tmp' # directory for temp files
+TESTS_DIR = 'tests' # directory with all the tests
+TEST_OUTPUT_DIR = os.path.join( TEMP_DIR, 'logs' )
+SRC_DIR = 'src'
+
+# determines which config variables are passed to the
+# script environment
+ENV = [
+	'TEMP_DIR',
+	'TESTS_DIR',
+	'SRC_DIR',
+]
 
 # define the test suites
 SUITES = {
