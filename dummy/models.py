@@ -1,6 +1,7 @@
 import os
 import glob
 import logging
+from datetime import datetime
 
 from dummy import config
 from dummy.utils import subprocess, create_dir
@@ -28,6 +29,8 @@ class Test:
 		self.name = name
 		self.path = os.path.join( config.TESTS_DIR, name )
 		self._metrics = {}
+		self.start_time = None
+		self.stop_time = None
 
 		assert os.path.exists( self.path ), "Sorry, could not find the test `%s`" % name
 
@@ -35,7 +38,9 @@ class Test:
 		return os.path.join( config.TEST_OUTPUT_DIR, "%s.log" % self.name )
 
 	def run( self ):
+		self.start_time = datetime.now()
 		output = subprocess([ config.TEST_RUNNER, self.path ], test=self )
+		self.stop_time = datetime.now()
 		path = self.log_path()
 
 		# write the test output temporarily to a file
@@ -50,6 +55,32 @@ class Test:
 		self._metrics[ metric.name ] = metric.collect( self )
 
 		return self._metrics[ metric.name ]
+
+	@property
+	def metrics( self ):
+		return self._metrics
+
+	def get_metric( self, name ):
+		return self._metrics[ name ]
+
+	def serialize( self ):
+		""" Serialize self to dictionary
+		"""
+
+		result = {}
+		result['name'] = self.name
+		result['started'] = self.start_time
+		result['completed'] = self.stop_time
+
+		metrics = {}
+		for metric in self.metrics:
+			metrics[metric.key()] = metric.value()
+		result['metrics'] = metrics
+		
+		return result
+
+	def target_dir( self ):
+		return config.TARGET_DIR + self.name
 
 class Script( Collector ):
 	""" A class for running collector scripts.
