@@ -31,6 +31,8 @@ class PassFailCollector( Collector ):
 class CCoverageCollector( Collector ):
 
 	blocks = re.compile( "(?:\r\n\s*\r\n|\n\s*\n)", re.MULTILINE )
+	c2gcda = re.compile( "\.c$" )
+
 	rname = re.compile( "^(?P<type>(?:Function|File)) '(?P<name>.*?)'" )
 	rlines_executed = re.compile( "^Lines executed:(?P<perc>[\d.]+)% of (?P<total>[\d]+)" )
 	rbranches_executed = re.compile( "^Branches executed:(?P<perc>[\d.]+)% of (?P<total>\d+)" )
@@ -68,6 +70,7 @@ class CCoverageCollector( Collector ):
 				logger.debug( "Got unrecognizable block: %s" % b )
 				continue
 
+		
 		return results
 
 	def parse_block( self, func ):
@@ -124,6 +127,21 @@ class CCoverageCollector( Collector ):
 			logger.debug( "Got unrecognizable line: %s" % line )
 
 		return result
+
+	def clean( self, fpath ):
+		""" clean the coverage counters for the source file <fpath>
+
+			param: 
+				fpath
+		"""
+		gcdapath = re.sub( CCoverageCollector.c2gcda, ".gcda", fpath )
+		try:
+			os.remove( gcdapath )
+		except OSError as e:
+			if not os.path.exists( gcdapath ):
+				pass
+			else:
+				raise Exception( "Cleaning coverage files failed: %s" % str( e ))
 
 	def collect( self, test, env={} ):
 		result = {}
