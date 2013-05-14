@@ -37,6 +37,9 @@ class Test:
 	def log_path( self ):
 		return os.path.join( config.TEST_OUTPUT_DIR, "%s.log" % self.name )
 
+	def storage_dir( self ):
+		return os.path.join( config.TARGET_DIR, "%s" % self.name )
+
 	def run( self ):
 		self.start_time = datetime.now()
 		output = subprocess([ config.TEST_RUNNER, self.path ], test=self )
@@ -68,14 +71,15 @@ class Test:
 		"""
 
 		result = {}
-		result['name'] = self.name
-		result['started'] = self.start_time
-		result['completed'] = self.stop_time
+		result[ 'name' ] = self.name
+		result[ 'started' ] = self.start_time.isoformat( " " )
+		result[ 'completed' ] = self.stop_time.isoformat( " " )
 
 		metrics = {}
-		for metric in self.metrics:
-			metrics[metric.key()] = metric.value()
-		result['metrics'] = metrics
+		for name, value in self.metrics.items():
+			metrics[ name ] = value
+		
+		result[ 'metrics' ] = metrics
 		
 		return result
 

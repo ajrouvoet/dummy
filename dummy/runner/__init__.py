@@ -1,5 +1,6 @@
 from dummy import config
 from dummy.models import Test, Metric
+from dummy.storage import Storage
 
 import os
 import glob
@@ -32,6 +33,9 @@ class Runner:
 	def clean( self ):
 		if os.path.isdir( config.TEMP_DIR ):
 			shutil.rmtree( config.TEMP_DIR )
+
+	def store( self ):
+		Storage( self ).store()
 
 	def run( self ):
 		""" run the tests in the queue
@@ -84,3 +88,7 @@ def run( args ):
 
 	# run the tests
 	runner.run()
+
+	# store the results
+	if args.store:
+		runner.store()

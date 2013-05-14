@@ -24,9 +24,15 @@ parser.add_argument(
 runner = sub.add_parser( 'run', help="run tests" )
 runner.add_argument( 'name', help="test name (or suite name if -s is given)" )
 runner.add_argument(
-	'-s',
+	'-S',
 	'--suite',
 	help="interpret `test` argument as the name of a test suite",
+	action="store_true"
+)
+runner.add_argument(
+	'-s',
+	'--store',
+	help="Store the test results",
 	action="store_true"
 )
 
