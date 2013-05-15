@@ -64,3 +64,25 @@ class Storage:
 
 			#TODO further outputs (xml,csv)
 		logger.info( "Stored results in directory: `%s`" % config.TARGET_DIR )
+
+
+	# def load( self, ldir ):
+	# 	""" Load test results from a directory
+	# 	"""
+
+	# 	tests = []
+	# 	#Iterate through the results folder
+	# 	for root, tests, files in os.walk(ldir):
+	# 		for testname in tests:
+	# 			testpath = os.path.join(root, testname)
+
+	# 			if self.method == Storage.JSON:
+	# 				resultspath = os.path.join( testpath, 'results.json' )
+	# 			try:
+	# 				with open( resultspath ) as fresults:    
+	# 					data = json.load( fresults )
+	# 					tests.append( Test.unserialize( data ))
+	# 			except IOError as e:
+	# 				logger.info( "Could not load results from: `%s`" % resultspath )
+	# 				pass
+				

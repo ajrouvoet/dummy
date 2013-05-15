@@ -83,6 +83,11 @@ class Test:
 		
 		return result
 
+	@staticmethod
+	def unserialize( dict ):
+		""" Create a Test object from a dictionary
+		"""
+
 	def target_dir( self ):
 		return config.TARGET_DIR + self.name
 
