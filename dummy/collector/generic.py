@@ -29,59 +29,6 @@ class PassFailCollector( Collector ):
 		return self.parse_output( result )
 
 class CCoverageCollector( Collector ):
-<<<<<<< HEAD
-
-	blocks = re.compile( "(?:\r\n\s*\r\n|\n\s*\n)", re.MULTILINE )
-	c2gcda = re.compile( "\.c$" )
-
-	rname = re.compile( "^(?P<type>(?:Function|File)) '(?P<name>.*?)'" )
-	rlines_executed = re.compile( "^Lines executed:(?P<perc>[\d.]+)% of (?P<total>[\d]+)" )
-	rbranches_executed = re.compile( "^Branches executed:(?P<perc>[\d.]+)% of (?P<total>\d+)" )
-	rno_branches = re.compile( "^No branches" )
-	rno_calls = re.compile( "^No calls" )
-	rtaken_gt_once = re.compile( "^Taken at least once:(?P<perc>[\d.]+)% of (?P<total>\d+)" )
-	rcalls_executed = re.compile( "^Calls executed:(?P<perc>[\d.]+)% of (?P<total>\d+)" )
-
-	def parse( self, output ):
-		results = {
-			'functions': {}
-		}
-
-		current = []
-		blocks = CCoverageCollector.blocks.split( output )
-
-		# parse the individual blocks
-		for b in blocks:
-			# these can be either 'Function'
-			# or 'File' descriptor blocks.
-			# most of blocks are function descr. so test that one first for speed opt
-			m = CCoverageCollector.rname.match( b )
-
-			# not recognized block catch
-			if m is None:
-				logger.debug( "Got unrecognizable block: %s" % b )
-				continue
-
-			if m.group( 'type' ) == "Function":
-				results[ 'functions' ][ m.group( 'name' )] = self.parse_block( b )
-			elif m.group( 'type' ) == "File":
-				results[ 'file' ] = m.group( 'name' )
-				results.update( self.parse_block( b ))
-			else:
-				logger.debug( "Got unrecognizable block: %s" % b )
-				continue
-
-
-		return results
-
-	def parse_block( self, func ):
-		'''
-		Function 'Transition_destroy'
-		Lines executed:100.00% of 3
-		No branches
-		No calls
-		'''
-=======
 	rheader = re.compile( r'^TN:(?P<name>.*)$' )
 	rfooter = re.compile( r'^end_of_record$' )
 	rpath = re.compile( r'^SF:(?P<path>.*)$' )
@@ -110,7 +57,6 @@ class CCoverageCollector( Collector ):
 								}
 							}
 		"""
->>>>>>> CCoverageCollector now works with lcov data instead of gcov;
 		result = {}
 		fresult = None
 		fpath = None
