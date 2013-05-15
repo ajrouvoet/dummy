@@ -20,3 +20,4 @@ GIT_TAG_RELEASE_REGEX = r".*"
 RELEASES = {}
 TEST_RUNNER = '%s/bin/runner.sh'
 METRICS = {}
+STATISTICS = {}

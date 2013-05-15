@@ -1,8 +1,8 @@
 """ The configuration file for the test framework
 	All CAPITALIZED names are settings
 """
-from dummy.statistics.engines import count, avg
-from dummy.collectors import *
+from dummy.statistics.generic import CountEngine
+from dummy.collectors.generic import CCoverageCollector, PassFailCollector
 
 TEMP_DIR = '.tmp' # directory for temp files
 TESTS_DIR = 'tests' # directory with all the tests
@@ -42,15 +42,6 @@ RELEASES = {
 # this is test runner executable; it takes one argument: the path to the test
 TEST_RUNNER = 'bin/runner.sh'
 
-# custom statistics function
-def function_cov( stat, coverage ):
-	# loop over the function coverage
-	# information and add one to the statistic for every function that is
-	# at least partially covered
-	for f in coverage.functions:
-		if f.coverage > 0:
-			state += 1
-
 # here you configure the metrics you would like to collect
 # from the test results, how to collect them and were to store them
 METRICS = {
@@ -62,22 +53,11 @@ METRICS = {
 
 	# passing/failing of a test is also configured as a collector
 	'pass/fail': {
-		'collector': PassFail(),
-
-		# we can configure what statistics are gathered over the different tests
-		# several statistics engines exist in the python module `dummy.statistics.engines`
-		# 	count (count occurrences of results)
-		# 	avg
-		'statistics': {
-			# let's count the amount of tests failed/passed
-			'tests passing': {
-				'function': count
-			},
-		}
+		'collector': PassFailCollector()
 	},
 
 	'coverage': {
-		'collector': 'bin/coverage.sh',
+		'collector': CCoverageCollector,
 
 		# we expect the collector script it to print the value
 		# of the measured metric to the STDOUT stream
@@ -95,14 +75,25 @@ METRICS = {
 				'src': '%s/coverage/*.gcov' % TEMP,
 				'dest': '%s/coverage/' % TEMP
 			}
-		],
+		]
+	}
+}
 
-		'statistics': {
-			# if the metric type is json, you can do nested statistics gathering!
-			# and create a custom statistics function
-			'functions covered': {
-				'function': function_cov
-			}
-		}
+# custom statistics function
+def function_cov( stat, coverage ):
+	# loop over the function coverage
+	# information and add one to the statistic for every function that is
+	# at least partially covered
+	for f in coverage.functions:
+		if f.coverage > 0:
+			state += 1
+
+STATISTICS = {
+	# we can configure what statistics are gathered over the different tests
+	# several statistics engines exist in the python module `dummy.statistics.generic`
+
+	# let's count for example the amount of tests failed/passed
+	'tests passing': {
+		'engine': CountEngine
 	}
 }
