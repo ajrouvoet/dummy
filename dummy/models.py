@@ -159,7 +159,6 @@ class Metric:
 		"""
 		coll = conf.get( 'collector' )
 
-		assert len( name ) > 0
 		assert coll is not None, "Metric `%s` has no collector" % name
 
 		output_type = conf.get( 'type', Collector.VALUE )
@@ -175,6 +174,7 @@ class Metric:
 			)
 
 	def __init__( self, name, collector ):
+		assert len( name ) > 0, "A metric must be named"
 		assert isinstance( collector, Collector ), \
 			"Metric constructor collector must be of type Collector"
 
