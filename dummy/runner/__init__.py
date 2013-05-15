@@ -1,6 +1,7 @@
 from dummy import config
 from dummy.models import Test, Metric
 from dummy.storage import Storage
+from dummy.statistics import Statistic
 
 import os
 import glob
@@ -13,13 +14,16 @@ logger = logging.getLogger( __name__ )
 class Runner:
 
 	def __init__( self ):
-		self.queue = []
-		self.completed = []
-		self.metrics = {}
-		self.results = []
+		self.queue = [] # list of queued tests
+		self.completed = [] # list of completed tests
+		self.metrics = {} # list of metrics to collect
+		self.results = [] # list of TestResult instances obtained
+		self.statistics = {} # list of statistics to collect
+		self.gathered_stats = {} # list of gathered statistics
 
-		# load the metric instances from the config
+		# load the metric and statistic instances from the config
 		self.load_metrics()
+		self.load_statistics()
 
 	def add_test( self, test ):
 		self.queue.append( test )
@@ -31,21 +35,16 @@ class Runner:
 
 			logger.debug( "Loaded metric `%s`" % m.name )
 
+	def load_statistics( self ):
+		for name, statistic in config.STATISTICS.items():
+			s = Statistic.parse( name, statistic )
+			self.statistics[ name ] = s
+
+			logger.debug( "Loaded statistic `%s`" % s.name )
+
 	def clean( self ):
 		if os.path.isdir( config.TEMP_DIR ):
 			shutil.rmtree( config.TEMP_DIR )
-
-	def store( self ):
-		Storage( self ).store()
-
-	def run( self ):
-		""" run the tests in the queue
-		"""
-		self.clean()
-
-		while len( self.queue ) != 0:
-			test = self.queue.pop()
-			self.run_test( test )
 
 	def pre_test_hook( self, test ):
 		for name, metric in self.metrics.items():
@@ -66,6 +65,26 @@ class Runner:
 		# complete it
 		self.completed.append( test )
 		logger.info( "100%% complete" )
+
+	def gather_statistics( self, stats=None ):
+		# default stats to all configured stats
+		if stats is None: stats = self.statistics
+
+		for s in stats.values():
+			self.gathered_stats[ s.name ] = s.gather( self.results )
+			logger.info( "Gathered statistic `%s`: %s" % ( s.name, self.gathered_stats[ s.name ]))
+
+	def run( self ):
+		""" run the tests in the queue
+		"""
+		self.clean()
+
+		while len( self.queue ) != 0:
+			test = self.queue.pop()
+			self.run_test( test )
+
+	def store( self ):
+		Storage( self ).store()
 
 # subprogram run
 def run( args ):
@@ -92,6 +111,9 @@ def run( args ):
 
 	# run the tests
 	runner.run()
+
+	# gather the statistics as configured
+	runner.gather_statistics()
 
 	# store the results
 	if args.store:
