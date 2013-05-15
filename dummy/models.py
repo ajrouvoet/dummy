@@ -9,6 +9,54 @@ from dummy.collector import Collector
 
 logger = logging.getLogger( __name__ )
 
+class TestResult:
+	""" Stores the result from executing a test
+	"""
+
+	def __init__( self, test ):
+		self.test = test
+		self.start_time = datetime.now()
+		self.stop_time = None
+		self._metrics = {}
+
+	def log( self, logdata ):
+		self.stop_time = datetime.now()
+
+		# get the output log path
+		path = self.test.log_path()
+
+		# write the test output temporarily to a file
+		# for the collectors to use
+		create_dir( path )
+		with open( path, 'w' ) as fh:
+			fh.write( logdata )
+
+	def add_metric( self, metric, value ):
+		self._metrics[ metric.name ] = value
+
+	@property
+	def metrics( self ):
+		return self._metrics
+
+	def get_metric( self, name ):
+		return self._metrics[ name ]
+
+	def serialize( self ):
+		""" Serialize self to dictionary
+		"""
+		result = {}
+		result[ 'name' ] = self.test.name
+		result[ 'started' ] = self.start_time.isoformat( " " )
+		result[ 'completed' ] = self.stop_time.isoformat( " " )
+
+		metrics = {}
+		for name, value in self.metrics.items():
+			metrics[ name ] = value
+
+		result[ 'metrics' ] = metrics
+
+		return result
+
 class Test:
 
 	@staticmethod
@@ -28,9 +76,6 @@ class Test:
 
 		self.name = name
 		self.path = os.path.join( config.TESTS_DIR, name )
-		self._metrics = {}
-		self.start_time = None
-		self.stop_time = None
 		self.env_cache = None
 
 		assert os.path.exists( self.path ), "Sorry, could not find the test `%s`" % name
@@ -39,7 +84,10 @@ class Test:
 		return os.path.join( config.TEST_OUTPUT_DIR, "%s.log" % self.name )
 
 	def storage_dir( self ):
-		return os.path.join( config.TARGET_DIR, "%s" % self.name )
+		return os.path.join( config.TARGET_DIR, self.name )
+
+	def target_dir( self ):
+		return os.path.join( config.TARGET_DIR, self.name )
 
 	def env( self ):
 		""" return:
@@ -51,46 +99,24 @@ class Test:
 
 		return self.env_cache
 
-	def run( self ):
-		self.start_time = datetime.now()
+	def run( self, metrics=[] ):
+		# create a result instance
+		result = TestResult( self )
+
+		# run the actual test
 		output = subprocess([ config.TEST_RUNNER, self.path ], test=self )
-		self.stop_time = datetime.now()
-		path = self.log_path()
+		result.log( output )
 
-		# write the test output temporarily to a file
-		# for the collectors to use
-		create_dir( path )
-		with open( path, 'w' ) as fh:
-			fh.write( output )
+		for metric in metrics:
+			value = metric.collect( self )
+			result.add_metric( metric, value )
 
-		return output
-
-	def run_metric( self, metric ):
-		self._metrics[ metric.name ] = metric.collect( self )
-
-		return self._metrics[ metric.name ]
-
-	@property
-	def metrics( self ):
-		return self._metrics
-
-	def get_metric( self, name ):
-		return self._metrics[ name ]
-
-	def serialize( self ):
-		""" Serialize self to dictionary
-		"""
-
-		result = {}
-		result[ 'name' ] = self.name
-		result[ 'started' ] = self.start_time.isoformat( " " )
-		result[ 'completed' ] = self.stop_time.isoformat( " " )
-
-		metrics = {}
-		for name, value in self.metrics.items():
-			metrics[ name ] = value
-
-		result[ 'metrics' ] = metrics
+			# log the collection of the metric
+			output = str( value ).strip()
+			logger.info( "\t%s: %s" % (
+				metric.name,
+				"%s ..." % output[:40] if len( output ) > 40 else output
+			))
 
 		return result
 
@@ -98,9 +124,6 @@ class Test:
 	def unserialize( dict ):
 		""" Create a Test object from a dictionary
 		"""
-
-	def target_dir( self ):
-		return config.TARGET_DIR + self.name
 
 class Script( Collector ):
 	""" A class for running collector scripts.

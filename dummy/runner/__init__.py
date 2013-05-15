@@ -16,6 +16,7 @@ class Runner:
 		self.queue = []
 		self.completed = []
 		self.metrics = {}
+		self.results = []
 
 		# load the metric instances from the config
 		self.load_metrics()
@@ -58,21 +59,13 @@ class Runner:
 		self.pre_test_hook( test )
 
 		# run the test
+		# and save the TestResult
 		logger.info( "Running test: `%s`" % test.name )
-		test.run()
+		self.results.append( test.run( self.metrics.values() ))
 
 		# complete it
 		self.completed.append( test )
 		logger.info( "100%% complete" )
-
-		# collect the metrics
-		logger.info( "Metrics collected:" )
-		for m in self.metrics.values():
-			output = str( test.run_metric( m )).strip()
-			logger.info( "\t%s: %s" % (
-				m.name,
-				"%s ..." % output[:20] if len( output ) > 20 else output
-			))
 
 # subprogram run
 def run( args ):

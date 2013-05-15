@@ -15,7 +15,7 @@ class Storage:
 
 	def __init__( self, runner, method='json' ):
 		assert method in Storage.METHOD_CHOICES, "Unkown storage method:`%s`" % method
-		
+
 		self.method = method
 		self.runner = runner
 
@@ -44,9 +44,9 @@ class Storage:
 		"""
 		self.clean()
 
-		for test in self.runner.completed:
+		for result in self.runner.results:
 			# create the storage dir
-			dir = test.storage_dir()
+			dir = result.test.storage_dir()
 			fpath = os.path.join( dir, 'results.json' )
 			create_dir( fpath )
 
@@ -54,7 +54,7 @@ class Storage:
 			if self.method == Storage.JSON:
 				try:
 					with open( fpath, 'w' ) as fh:
-						json.dump( test.serialize(), fh, sort_keys=True, indent=4 )
+						json.dump( result.serialize(), fh, sort_keys=True, indent=4 )
 						logger.debug( "Created results dump: `%s`" % fpath )
 				except IOError as e:
 					# do not write partial results
@@ -62,7 +62,6 @@ class Storage:
 
 					raise IOError( "Could not write test results to disk: %s" % str( e ))
 
-			#TODO further outputs (xml,csv)
 		logger.info( "Stored results in directory: `%s`" % config.TARGET_DIR )
 
 
