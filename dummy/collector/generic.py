@@ -7,7 +7,7 @@ import json
 
 from dummy.collector import Collector
 
- # don't show debug message per default
+# don't show debug message per default
 logger = logging.getLogger( __name__ )
 logger.setLevel( logging.INFO ) # hide debug messages per default
 
@@ -29,6 +29,7 @@ class PassFailCollector( Collector ):
 		return self.parse_output( result )
 
 class CCoverageCollector( Collector ):
+<<<<<<< HEAD
 
 	blocks = re.compile( "(?:\r\n\s*\r\n|\n\s*\n)", re.MULTILINE )
 	c2gcda = re.compile( "\.c$" )
@@ -70,7 +71,7 @@ class CCoverageCollector( Collector ):
 				logger.debug( "Got unrecognizable block: %s" % b )
 				continue
 
-		
+
 		return results
 
 	def parse_block( self, func ):
@@ -80,83 +81,121 @@ class CCoverageCollector( Collector ):
 		No branches
 		No calls
 		'''
-		result = {}
+=======
+	rheader = re.compile( r'^TN:(?P<name>.*)$' )
+	rfooter = re.compile( r'^end_of_record$' )
+	rpath = re.compile( r'^SF:(?P<path>.*)$' )
+	rfunction_hits = re.compile( r'^FNDA:(?P<hits>\d+),(?P<name>.*)$' )
+	rfunctions_found= re.compile( r'^FNF:(?P<found>\d+)$' )
+	rfunctions_hit = re.compile( r'^FNH:(?P<hits>\d+)$' )
+	rlines_found = re.compile( r'^LH:(?P<found>\d+)$' )
+	rlines_hit = re.compile( r'^LH:(?P<hits>\d+)$' )
 
-		for line in func.splitlines():
-			# skip naming lines, since they were covered in parse
-			m = CCoverageCollector.rname.match( line )
-			if m is not None:
-				continue
+	def parse( self, output ):
+		""" Parses lcov output into a dictionary
 
-			# lines executed
-			m = CCoverageCollector.rlines_executed.match( line )
-			if m is not None:
-				result[ 'lines_executed' ] = float( m.group( 'perc' ))
-				result[ 'lines' ] = float( m.group( 'total' ))
-				continue
-
-			# branches taken
-			m = CCoverageCollector.rbranches_executed.match( line )
-			if m is not None:
-				result[ 'branches_executed' ] = float( m.group( 'perc' ))
-				result[ 'branches' ] = float( m.group( 'total' ))
-				continue
-
-			# no branches
-			m = CCoverageCollector.rno_branches.match( line )
-			if m is not None:
-				result[ 'branches_executed' ] = 0
-				result[ 'branches' ] = 0
-				continue
-
-			# calls executed
-			m = CCoverageCollector.rcalls_executed.match( line )
-			if m is not None:
-				result[ 'calls_executed' ] = float( m.group( 'perc' ))
-				result[ 'calls' ] = float( m.group( 'total' ))
-				continue
-
-			# no calls
-			m = CCoverageCollector.rno_calls.match( line )
-			if m is not None:
-				result[ 'calls_executed' ] = 0
-				result[ 'calls' ] = 0
-				continue
-
-			# if we got here, we got an unrecognized line
-			logger.debug( "Got unrecognizable line: %s" % line )
-
-		return result
-
-	def clean( self, fpath ):
-		""" clean the coverage counters for the source file <fpath>
-
-			param: 
-				fpath
+			returns:
+				{dict}: coverage results of the form:
+							{
+								'<filename>': {
+									'lines': <int>,
+									'lines_hit': <int>,
+									'branches': <int>,
+									'branches_hit': <int>,
+									'functions': {
+										'<name'>: <times_run>
+										'<name'>: <times_run>
+										...
+									}
+								}
+							}
 		"""
-		gcdapath = re.sub( CCoverageCollector.c2gcda, ".gcda", fpath )
-		try:
-			os.remove( gcdapath )
-		except OSError as e:
-			if not os.path.exists( gcdapath ):
-				pass
-			else:
-				raise Exception( "Cleaning coverage files failed: %s" % str( e ))
-
-	def collect( self, test, env={} ):
+>>>>>>> CCoverageCollector now works with lcov data instead of gcov;
 		result = {}
+		fresult = None
+		fpath = None
 
-		# call gcov for every source file to collect the coverage data per file
-		src = env.get( 'SRC_DIR' )
-		for path, dirnames, filenames in os.walk( src ):
-			# filter on c files
-			for fname in fnmatch.filter( filenames, '*.c' ):
-				fpath = os.path.join( src, fname )
+		for line in output.splitlines():
+			# first make sure we are in a file section
+			if fresult is None and CCoverageCollector.rheader.match( line ):
+				fresult = {
+					'function_coverage': {}
+				}
 
-				gcov = Popen([ 'gcov', '-nfb', fpath ], stdout=PIPE, stderr=PIPE )
-				out, err = gcov.communicate()
-				out = out.decode( 'utf-8' )
+				continue
+			else:
+				# single function hits
+				m = CCoverageCollector.rfunction_hits.match( line )
+				if m is not None:
+					fresult[ 'function_coverage' ][ m.group( 'name' )] = int( m.group( 'hits' ))
+					continue
 
-				result[ fname ] = self.parse( out )
+				# functions hit
+				m = CCoverageCollector.rfunctions_hit.match( line )
+				if m is not None:
+					fresult[ 'functions_hit' ] = int( m.group( 'hits' ))
+					continue
+
+				# functions found
+				m = CCoverageCollector.rfunctions_found.match( line )
+				if m is not None:
+					fresult[ 'functions' ] = int( m.group( 'found' ))
+					continue
+
+				# lines hit
+				m = CCoverageCollector.rlines_hit.match( line )
+				if m is not None:
+					fresult[ 'lines_hit' ] = int( m.group( 'hits' ))
+					continue
+
+				# lines found
+				m = CCoverageCollector.rlines_found.match( line )
+				if m is not None:
+					fresult[ 'lines' ] = int( m.group( 'found' ))
+					continue
+
+				# file path
+				m = CCoverageCollector.rpath.match( line )
+				if m is not None:
+					fpath = m.group( 'path' )
+					continue
+
+				# make sure we close the file section properly
+				m = CCoverageCollector.rfooter.match( line )
+				if m is not None:
+					assert fpath is not None, "lcov file section had no SF entry (no file path)"
+					result[ fpath ] = fresult
+					fresult = None
+					continue
+
+				# if we got here, we got an unrecognized line
+				logger.debug( "Got unrecognizable line: %s" % line )
 
 		return result
+
+	def pre_test_hook( self, test ):
+		# zero the coverage counters
+		gcov = Popen([ 'lcov', '-z', '-d', test.env().get( 'SRC_DIR' ) ])
+		ret = gcov.wait()
+
+		# make sure this was succesfull
+		assert ret == 0, "Zeroing the coverage counters in the SRC_DIR failed"
+
+	def collect( self, test ):
+		result = {}
+
+		# collect the lcov data from the src directory
+		src = test.env().get( 'SRC_DIR' )
+
+		lcov = Popen([ 'lcov', '-c', '-b', src, '-d', src ], stdout=PIPE, stderr=PIPE )
+		out, err = lcov.communicate()
+		out = out.decode( 'utf-8' )
+
+		logger.debug( out )
+		# if no gcda files were found lcov fails
+		# but this can be a valid data
+		# so report this to the user as a warning
+		if lcov.returncode == 1:
+			logger.warn( "lcov failed for test `%s`:\n\n%s" % ( test.name, err.decode( 'utf-8' )))
+
+		return self.parse( out )

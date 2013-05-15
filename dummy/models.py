@@ -31,6 +31,7 @@ class Test:
 		self._metrics = {}
 		self.start_time = None
 		self.stop_time = None
+		self.env_cache = None
 
 		assert os.path.exists( self.path ), "Sorry, could not find the test `%s`" % name
 
@@ -39,6 +40,16 @@ class Test:
 
 	def storage_dir( self ):
 		return os.path.join( config.TARGET_DIR, "%s" % self.name )
+
+	def env( self ):
+		""" return:
+				{dict}: the test specific environment
+		"""
+		# cache the environment
+		if self.env_cache is None:
+			self.env_cache = plugin_environ( test=self )
+
+		return self.env_cache
 
 	def run( self ):
 		self.start_time = datetime.now()
@@ -78,9 +89,9 @@ class Test:
 		metrics = {}
 		for name, value in self.metrics.items():
 			metrics[ name ] = value
-		
+
 		result[ 'metrics' ] = metrics
-		
+
 		return result
 
 	@staticmethod
@@ -107,7 +118,7 @@ class Script( Collector ):
 	def path( self ):
 		return self._path
 
-	def collect( self, test, env={} ):
+	def collect( self, test ):
 		# run the collector script
 		output = subprocess([ self.path, test.name ], test=test )
 
@@ -147,5 +158,8 @@ class Metric:
 		self.name = name
 		self.collector = collector
 
+	def pre_test_hook( self, test ):
+		self.collector.pre_test_hook( test )
+
 	def collect( self, test ):
-		return self.collector.collect( test, env=plugin_environ() )
+		return self.collector.collect( test )

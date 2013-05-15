@@ -44,24 +44,35 @@ class Runner:
 
 		while len( self.queue ) != 0:
 			test = self.queue.pop()
+			self.run_test( test )
 
-			# run the test
-			logger.info( 80*"-" )
-			logger.info( "Running test: `%s`" % test.name )
-			test.run()
+	def pre_test_hook( self, test ):
+		for name, metric in self.metrics.items():
+			metric.pre_test_hook( test )
 
-			# complete it
-			self.completed.append( test )
-			logger.info( "100%% complete" )
+	def run_test( self, test ):
+		logger.info( 80*"-" )
 
-			# collect the metrics
-			logger.info( "Metrics collected:" )
-			for m in self.metrics.values():
-				output = str( test.run_metric( m )).strip()
-				logger.info( "\t%s: %s" % (
-					m.name,
-					"%s ..." % output[:20] if len( output ) > 20 else output
-				))
+		# run the pre test hooks
+		logger.info( "Running pre-test hooks..." )
+		self.pre_test_hook( test )
+
+		# run the test
+		logger.info( "Running test: `%s`" % test.name )
+		test.run()
+
+		# complete it
+		self.completed.append( test )
+		logger.info( "100%% complete" )
+
+		# collect the metrics
+		logger.info( "Metrics collected:" )
+		for m in self.metrics.values():
+			output = str( test.run_metric( m )).strip()
+			logger.info( "\t%s: %s" % (
+				m.name,
+				"%s ..." % output[:20] if len( output ) > 20 else output
+			))
 
 # subprogram run
 def run( args ):
