@@ -39,7 +39,23 @@ class TestResult:
 		return self._metrics
 
 	def get_metric( self, name ):
-		return self._metrics[ name ]
+		""" Gets a metric by it's (dotted) name.
+			e.g: get_metric( 'coverage.functions.State_create' )
+
+			return:
+				{any}: value of the metric, or None if not listed
+		"""
+		# split the name into parts
+		names = name.split( '.' )
+
+		try:
+			value = self._metrics
+			for name in names:
+				value = value[ name ]
+		except KeyError:
+			value = None
+
+		return value
 
 	def serialize( self ):
 		""" Serialize self to dictionary
