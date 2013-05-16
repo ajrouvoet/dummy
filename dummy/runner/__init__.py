@@ -1,7 +1,7 @@
 from dummy import config
 from dummy.models import Test, Metric
-from dummy.storage import Storage
 from dummy.statistics import Statistic
+import dummy.storage
 
 import os
 import glob
@@ -84,7 +84,7 @@ class Runner:
 			self.run_test( test )
 
 	def store( self ):
-		Storage( self ).store()
+		storage.store( self.results )
 
 # subprogram run
 def run( args ):

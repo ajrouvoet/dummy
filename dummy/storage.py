@@ -39,6 +39,7 @@ def store( resultslist, method='json' ):
 	"""
 	assert method in Storage.METHOD_CHOICES, "Unkown storage method:`%s`" % method
 
+	#Clean already existing results
 	clean()
 
 	for testresult in resultslist:
