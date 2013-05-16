@@ -64,7 +64,7 @@ class Runner:
 
 		# complete it
 		self.completed.append( test )
-		logger.info( "100%% complete" )
+		logger.info( "100% complete" )
 
 	def gather_statistics( self, stats=None ):
 		# default stats to all configured stats
