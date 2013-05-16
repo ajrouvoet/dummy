@@ -15,11 +15,18 @@ class TestResult:
 
 	def __init__( self, test ):
 		self.test = test
-		self.start_time = datetime.now()
+		self.start_time = None
 		self.stop_time = None
 		self._metrics = {}
 
-	def log( self, logdata ):
+	def start( self ):
+		""" Set start time of test result to `now`
+		"""
+		self.start_time = datetime.now()
+
+	def complete( self, logdata ):
+		""" Set stop time of test result to `now` and log the logdata to the results log file
+		"""
 		self.stop_time = datetime.now()
 
 		# get the output log path
@@ -64,12 +71,7 @@ class TestResult:
 		result[ 'name' ] = self.test.name
 		result[ 'started' ] = self.start_time.isoformat( " " )
 		result[ 'completed' ] = self.stop_time.isoformat( " " )
-
-		metrics = {}
-		for name, value in self.metrics.items():
-			metrics[ name ] = value
-
-		result[ 'metrics' ] = metrics
+		result[ 'metrics' ] = self._metrics.copy()
 
 		return result
 
@@ -120,8 +122,9 @@ class Test:
 		result = TestResult( self )
 
 		# run the actual test
+		result.start()
 		output = subprocess([ config.TEST_RUNNER, self.path ], test=self )
-		result.log( output )
+		result.complete( output )
 
 		for metric in metrics:
 			value = metric.collect( self )
@@ -135,11 +138,6 @@ class Test:
 			))
 
 		return result
-
-	@staticmethod
-	def unserialize( dict ):
-		""" Create a Test object from a dictionary
-		"""
 
 class Script( Collector ):
 	""" A class for running collector scripts.
