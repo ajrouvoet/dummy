@@ -9,17 +9,17 @@ class CountEngine( Engine ):
 		assert len( metric ) > 0, "CountEngine requires a metric name"
 		super( CountEngine, self ).__init__( metric )
 
-		self.passing = 0
-		self.total = 0
-
-	def get_result( self ):
-		return {
-			'passing': self.passing,
-			'total': self.total
+		self.bars = {
+			'total': 0
 		}
 
-	def process( self, data ):
-		if data == "PASS":
-			self.passing += 1
+	def get_result( self ):
+		return self.bars
 
-		self.total += 1
+	def process( self, data ):
+		if self.bars.get( data ) is None:
+			self.bars[ data ] = 1
+		else:
+			self.bars[ data ] += 1
+
+		self.bars[ 'total' ] += 1
