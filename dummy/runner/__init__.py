@@ -1,7 +1,7 @@
 from dummy import config
 from dummy.models import Test, Metric
 from dummy.statistics import Statistic
-import dummy.storage
+from dummy import storage
 
 import os
 import glob

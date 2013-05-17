@@ -39,22 +39,22 @@ def store( resultslist, method='json' ):
 		raises:
 			IOError: Unable to write results to disk.
 	"""
-	assert method in storage.METHOD_CHOICES, "Unkown storage method:`%s`" % method
+	assert method in METHOD_CHOICES, "Unkown storage method:`%s`" % method
 
 	for testresult in resultslist:
 		# Clean already existing results for this test.
-		clean( testresult.name )
+		clean( testresult.test.name )
 
 		# create the storage dir
-		dir = storage_dir( testresult.name )
+		dir = storage_dir( testresult.test.name )
 		fpath = os.path.join( dir, 'results.json' )
 		create_dir( fpath )
 
 		# Store the results with the specified method.
-		if method == storage.JSON:
+		if method == JSON:
 			try:
 				with open( fpath, 'w' ) as fh:
-					json.dump( test.results, fh, sort_keys=True, indent=4 )
+					json.dump( testresult.serialize(), fh, sort_keys=True, indent=4 )
 					logger.debug( "Created results dump: `%s`" % fpath )
 			except IOError as e:
 				# do not write partial results
@@ -75,7 +75,7 @@ def load( ldir ):
 
 	results = []
 	( root, dirs, files ) = os.walk(ldir).next()
-	#Iterate over the test folders. 
+	#Iterate over the test folders.
 	for testname in dirs:
 		testpath = os.path.join(root, testname)
 
@@ -84,7 +84,7 @@ def load( ldir ):
 		if 'results.json' in dirfiles:
 			try:
 				resultspath = os.path.join( testpath, 'results.json' )
-				with open( resultspath ) as fresults:    
+				with open( resultspath ) as fresults:
 					data = json.load( fresults )
 					tests.append( TestResult.unserialize( data ))
 			except IOError as e:
@@ -92,5 +92,5 @@ def load( ldir ):
 				raise IOError( "Could not load results from: `%s`" % resultspath )
 
 		#if 'results.xml' in dirfiles...
-	
+
 	return results
