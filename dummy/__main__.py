@@ -80,5 +80,4 @@ if __name__ == "__main__":
 		if args.debug:
 			raise
 		else:
-			print( dir( logging ))
 			logging.getLogger( 'dummy' ).error( str( e ))

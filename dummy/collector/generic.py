@@ -9,7 +9,6 @@ from dummy.collector import Collector
 
 # don't show debug message per default
 logger = logging.getLogger( __name__ )
-logger.setLevel( logging.INFO ) # hide debug messages per default
 
 class PassFailCollector( Collector ):
 	""" A class for Pass/Fail collecting
@@ -116,16 +115,18 @@ class CCoverageCollector( Collector ):
 
 				# if we got here, we got an unrecognized line
 				logger.debug( "Got unrecognizable line: %s" % line )
-		
+
 		return result
 
 	def pre_test_hook( self, test ):
 		# zero the coverage counters
-		gcov = Popen([ 'lcov', '-z', '-d', test.env().get( 'SRC_DIR' ) ])
+		gcov = Popen([ 'lcov', '-z', '-d', test.env().get( 'SRC_DIR' ) ], stdout=PIPE, stderr=PIPE )
 		ret = gcov.wait()
+		( out, err ) = gcov.communicate()
 
 		# make sure this was succesfull
-		assert ret == 0, "Zeroing the coverage counters in the SRC_DIR failed"
+		# or else print the error
+		assert ret == 0, "Zeroing the coverage counters in the SRC_DIR failed: %s " % err
 
 	def collect( self, test ):
 		result = {}
@@ -137,7 +138,6 @@ class CCoverageCollector( Collector ):
 		out, err = lcov.communicate()
 		out = out.decode( 'utf-8' )
 
-		logger.debug( out )
 		# if no gcda files were found lcov fails
 		# but this can be a valid data
 		# so report this to the user as a warning
