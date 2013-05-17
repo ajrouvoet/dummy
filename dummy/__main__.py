@@ -44,11 +44,12 @@ parser.add_argument(
 
 # `dummy run [-s] <name>`
 runner = sub.add_parser( 'run', help="run tests" )
-runner.add_argument( 'name', help="test name (or suite name if -s is given)" )
+runner.set_defaults( func='run' )
+runner.add_argument( 'name', help="test name (or suite name if -S is given)" )
 runner.add_argument(
 	'-S',
 	'--suite',
-	help="interpret `test` argument as the name of a test suite",
+	help="interpret `name` argument as the name of a test suite",
 	action="store_true"
 )
 runner.add_argument(
@@ -58,7 +59,20 @@ runner.add_argument(
 	action="store_true"
 )
 
-runner.set_defaults( func='run' )
+# `dummy run [-s] <name>`
+show = sub.add_parser( 'show', help="results browsing" )
+show.set_defaults( func='show' )
+show.add_argument(
+	'-S',
+	'--suite',
+	help="interpret `name` argument as the name of a test suite",
+	action="store_true"
+)
+show.add_argument(
+	'tests',
+	help="names of the tests or suites (if -S is given) to inspect",
+	nargs="+"
+)
 
 if __name__ == "__main__":
 	args = parser.parse_args()
@@ -70,10 +84,11 @@ if __name__ == "__main__":
 	try:
 		# do this here, to catch
 		# errors from loading the configuration
-		from dummy.runner import run
+		from dummy.runner import run, show
 
 		if not hasattr( args, 'func' ): parser.print_help()
 		elif args.func == 'run': run( args )
+		elif args.func == 'show': show( args )
 
 	except Exception as e:
 		# to trace or not to trace

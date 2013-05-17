@@ -1,6 +1,7 @@
 import os
 import glob
 import logging
+import dateutil.parser
 from datetime import datetime
 
 from dummy import config
@@ -14,21 +15,25 @@ class TestResult:
 	"""
 
 	@classmethod
-	def unserialize( cls, dict ):
+	def unserialize( cls, data ):
 		""" Unserializes a dictionary to a TestResult.
-
 			This only works well if dict is formatted according to the serialize() method.
 
 			raises:
-				KeyError: When dict does not contain 'name', 'started' and 'completed' keys.
+				KeyError: When data does not contain 'name', 'started' and 'completed' keys.
 		"""
 
 		# Assume that name, started and completed are in dict.
 		try:
-			test = Test(dict[ 'name' ])
-			result = cls(test, dict[ 'started' ], dict[ 'completed' ])
-			if 'metrics' in dict:
-				result.metrics = dict['metrics']
+			test = Test( data[ 'name' ] )
+			result = cls(
+				test,
+				dateutil.parser.parse( data[ 'started' ]),
+				dateutil.parser.parse( data[ 'completed' ])
+			)
+
+			if 'metrics' in data:
+				result.metrics = data[ 'metrics' ]
 
 			return result
 		except KeyError as e:
@@ -95,6 +100,9 @@ class TestResult:
 		result[ 'metrics' ] = self._metrics.copy()
 
 		return result
+
+	def __str__( self ):
+		return "`%s` result" % self.test.name
 
 class Test:
 

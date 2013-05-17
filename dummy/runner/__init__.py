@@ -1,7 +1,7 @@
 from dummy import config
 from dummy.models import Test, Metric
 from dummy.statistics import Statistic
-from dummy import storage
+from dummy.runner import storage
 
 import os
 import glob
@@ -28,6 +28,9 @@ class Runner:
 	def add_test( self, test ):
 		self.queue.append( test )
 
+	def add_result( self, result ):
+		self.results.append( result )
+
 	def load_metrics( self ):
 		for name, metric in config.METRICS.items():
 			m = Metric.parse( name, metric )
@@ -51,8 +54,6 @@ class Runner:
 			metric.pre_test_hook( test )
 
 	def run_test( self, test ):
-		logger.info( 80*"-" )
-
 		# run the pre test hooks
 		logger.info( "Running pre-test hooks..." )
 		self.pre_test_hook( test )
@@ -78,13 +79,16 @@ class Runner:
 		""" run the tests in the queue
 		"""
 		self.clean()
+		logger.info( 80*"-" )
 
 		while len( self.queue ) != 0:
 			test = self.queue.pop()
 			self.run_test( test )
+			logger.info( 80*"-" )
 
 	def store( self ):
-		storage.store( self.results )
+		for result in self.results:
+			storage.store_result( result )
 
 # subprogram run
 def run( args ):
@@ -118,3 +122,14 @@ def run( args ):
 	# store the results
 	if args.store:
 		runner.store()
+
+def show( args ):
+	runner = Runner()
+
+	for name in args.tests:
+		runner.add_result( storage.load_result( name ))
+
+	# replace this with something better
+	import json
+	for result in runner.results:
+		logger.info( json.dumps( result.serialize(), indent=4 ))
