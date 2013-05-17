@@ -29,13 +29,20 @@ class CoverageOverviewEngine( Engine ):
 	def __init__( self, metric="coverage" ):
 		super( CoverageOverviewEngine, self ).__init__( metric )
 
-		self.coverage = {
-			'lines_percentage' : 0,
-			'function_percentage' : 0 
-		}
+		self.lines = 0
+		self.lines_hit = 0
+		self.functions = 0
+		self.functions_hit = 0
 
 	def get_result( self ):
-		return self.coverage
+		return {
+			'lines_percentage': round( 
+					float( self.lines_hit ) / self.lines * 100 
+				) if self.lines > 0 else 0,
+			'function_percentage': round(
+					float( self.functions_hit ) / self.functions * 100
+				) if self.functions > 0 else 0
+		}
 
 	def process( self, data ):
 		""" Process the coverage data
@@ -43,18 +50,12 @@ class CoverageOverviewEngine( Engine ):
 			raises:
 				KeyError: When the coverage data is wrongly formatted.
 		"""
-		lines = 0
-		lines_hit = 0
-		functions = 0
-		functions_hit = 0
 		for value in data.itervalues():
 			try:
-				functions += value[ 'functions' ]
-				functions_hit += value[ 'functions_hit' ]
-				lines += value[ 'lines' ]
-				lines_hit += value[ 'lines_hit' ]
+				self.functions += value[ 'functions' ]
+				self.functions_hit += value[ 'functions_hit' ]
+				self.lines += value[ 'lines' ]
+				self.lines_hit += value[ 'lines_hit' ]
 			except KeyError as e:
 				raise KeyError( "Wrongly formatted data for CoverageOverviewEngine: %s" % str( e ))
 
-		self.coverage[ 'lines_percentage' ] = lines_hit / lines * 100 if lines > 0 else 0
-		self.coverage[ 'lines_percentage' ] = functions_hit / functions * 100 if functions > 0 else 0

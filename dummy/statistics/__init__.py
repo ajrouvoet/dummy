@@ -37,7 +37,7 @@ class Statistic( object ):
 		try:
 			result = self.engine.run( results )
 		except Exception as e:
-			raise Exception( "The statistics engine	`%s` did not exit succesfully: %e" %\
+			raise Exception( "The statistics engine	`%s` did not exit succesfully: %s" %\
 				( self.name, str( e ))
 			)
 

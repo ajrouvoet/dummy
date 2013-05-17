@@ -75,7 +75,7 @@ if __name__ == "__main__":
 		if not hasattr( args, 'func' ): parser.print_help()
 		elif args.func == 'run': run( args )
 
-	except Exception:
+	except Exception as e:
 		# to trace or not to trace
 		if args.debug:
 			raise
