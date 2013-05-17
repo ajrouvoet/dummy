@@ -35,7 +35,7 @@ class CCoverageCollector( Collector ):
 	rfunction_hits = re.compile( r'^FNDA:(?P<hits>\d+),(?P<name>.*)$' )
 	rfunctions_found= re.compile( r'^FNF:(?P<found>\d+)$' )
 	rfunctions_hit = re.compile( r'^FNH:(?P<hits>\d+)$' )
-	rlines_found = re.compile( r'^LH:(?P<found>\d+)$' )
+	rlines_found = re.compile( r'^LF:(?P<found>\d+)$' )
 	rlines_hit = re.compile( r'^LH:(?P<hits>\d+)$' )
 
 	def parse( self, output ):
@@ -116,7 +116,7 @@ class CCoverageCollector( Collector ):
 
 				# if we got here, we got an unrecognized line
 				logger.debug( "Got unrecognizable line: %s" % line )
-
+		
 		return result
 
 	def pre_test_hook( self, test ):
