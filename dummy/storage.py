@@ -5,23 +5,25 @@ import logging
 
 from dummy import config
 from dummy.utils import create_dir
+from dummy.models import TestResult
 
 logger = logging.getLogger( __name__ )
 
 JSON = 'json'
 METHOD_CHOICES = ( JSON ) #Extend with .xml,.csv?
 
-def clean():
-	""" Clean the storage dir.
+def clean( name ):
+	""" Clean the storage dir for test `name`.
 
 		raises:
 			OSError: When failed to remove storage dir.
 	"""
 	# clean the existing result dir and create a new one.
+	result_dir = storage_dir( name )
 	try:
-		shutil.rmtree( config.TARGET_DIR )
+		shutil.rmtree( result_dir )
 	except OSError as e:
-		if not os.path.isdir( config.TARGET_DIR ):
+		if not os.path.isdir( result_dir ):
 			pass
 		else:
 			raise e
@@ -29,7 +31,7 @@ def clean():
 	logger.debug( "Cleaned directory: `%s`" % config.TARGET_DIR )
 
 def storage_dir( name ):
-	return os.path.join( config.TARGET_DIR, name ) 
+	return os.path.join( config.TARGET_DIR, name )
 
 def store( resultslist, method='json' ):
 	""" Store the completed test results to the results directory.
@@ -37,19 +39,19 @@ def store( resultslist, method='json' ):
 		raises:
 			IOError: Unable to write results to disk.
 	"""
-	assert method in Storage.METHOD_CHOICES, "Unkown storage method:`%s`" % method
-
-	#Clean already existing results
-	clean()
+	assert method in storage.METHOD_CHOICES, "Unkown storage method:`%s`" % method
 
 	for testresult in resultslist:
+		# Clean already existing results for this test.
+		clean( testresult.name )
+
 		# create the storage dir
-		dir = target_dir( testresult[ 'name' ])
+		dir = storage_dir( testresult.name )
 		fpath = os.path.join( dir, 'results.json' )
 		create_dir( fpath )
 
-		# store the results with the specified method.
-		if method == Storage.JSON:
+		# Store the results with the specified method.
+		if method == storage.JSON:
 			try:
 				with open( fpath, 'w' ) as fh:
 					json.dump( test.results, fh, sort_keys=True, indent=4 )

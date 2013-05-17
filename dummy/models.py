@@ -104,13 +104,6 @@ class Test:
 	def log_path( self ):
 		return os.path.join( config.TEST_OUTPUT_DIR, "%s.log" % self.name )
 
-	#TODO: Remove one *_dir function
-	def target_dir( self ):
-		return os.path.join( config.TARGET_DIR, self.name ) 
-
-	def storage_dir( self ):
-		return os.path.join( config.TARGET_DIR, self.name )
-
 	def env( self ):
 		""" return:
 				{dict}: the test specific environment
