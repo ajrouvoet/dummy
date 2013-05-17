@@ -28,7 +28,7 @@ def clean( name ):
 		else:
 			raise e
 
-	logger.debug( "Cleaned directory: `%s`" % config.TARGET_DIR )
+	logger.debug( "Cleaned directory: `%s`" % result_dir )
 
 def storage_dir( name ):
 	return os.path.join( config.TARGET_DIR, name )
@@ -74,10 +74,10 @@ def load( ldir ):
 	"""
 
 	results = []
-	( root, dirs, files ) = os.walk(ldir).next()
+	( root, dirs, files ) = os.walk( ldir ).next()
 	#Iterate over the test folders.
 	for testname in dirs:
-		testpath = os.path.join(root, testname)
+		testpath = os.path.join( root, testname )
 
 		dirfiles = os.lisdir( testpath )
 		#First try to find a .json results file.
