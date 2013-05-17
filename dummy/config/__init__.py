@@ -8,10 +8,6 @@ DUMMY_CONFIG_FILE = 'dummy_config.py'
 # to prevent missing values
 from dummy.config.defaults import *
 
-# logging is not likely to be overwritten by the user config
-# but can be, if they really want to
-from dummy.config.logging import *
-
 # import the project configuration
 # if this fails we cannot proceed
 try:

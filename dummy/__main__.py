@@ -3,6 +3,28 @@ import sys
 import argparse
 import os
 import logging
+from colorlog import ColoredFormatter
+
+# configure the dummy logger
+root = logging.getLogger( 'dummy' )
+root.setLevel( logging.DEBUG )
+
+# configure the main application handler
+ch = logging.StreamHandler()
+root.addHandler( ch )
+
+formatter = ColoredFormatter( "  %(white)s> %(log_color)s%(levelname)-8s %(reset)s%(message)s",
+    datefmt=None,
+    reset=True,
+	log_colors={
+		'DEBUG': 'white',
+		'INFO':	'green',
+		'WARNING': 'yellow',
+		'ERROR': 'red',
+		'CRITICAL': 'red'
+	}
+)
+ch.setFormatter( formatter )
 
 # make sure to add the dummy module directory to the path
 sys.path.append(
@@ -41,6 +63,9 @@ runner.set_defaults( func='run' )
 if __name__ == "__main__":
 	args = parser.parse_args()
 
+	# set the logging level
+	ch.setLevel( logging.DEBUG if args.debug else logging.INFO )
+
 	# run the subprogram
 	try:
 		# do this here, to catch
@@ -50,9 +75,10 @@ if __name__ == "__main__":
 		if not hasattr( args, 'func' ): parser.print_help()
 		elif args.func == 'run': run( args )
 
-	except Exception as e:
+	except Exception:
 		# to trace or not to trace
 		if args.debug:
-			raise e
+			raise
 		else:
+			print( dir( logging ))
 			logging.getLogger( 'dummy' ).error( str( e ))
