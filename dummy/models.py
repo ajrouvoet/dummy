@@ -16,21 +16,33 @@ class TestResult:
 	@staticmethod
 	def unserialize( dict ):
 		""" Unserializes a dictionary to a TestResult.
+
+			This only works well if dict is formatted according to the serialize() method.
+
+			raises:
+				KeyError: When dict does not contain 'name', 'started' and 'completed' keys.
 		"""
 
-	def __init__( self, test, start, stop, output ):
+		# Assume that name, started and completed are in dict.
+		try:
+			test = Test(dict[ 'name' ])
+			result = TestResult(test, dict[ 'started' ], dict[ 'completed' ])
+			if 'metrics' in dict:
+				result.metrics = dict['metrics']
+		except KeyError as e:
+			raise KeyError( "Unproper dictionary given to unserialize as TestResult: %s", str( e ))
+
+	def __init__( self, test, start, stop):
 		assert start is not None
 		assert stop is not None
 
 		self.test = test
-		self.start_time = start
-		self.stop_time = stop
+		self.started = start
+		self.completed = stop
 		self._metrics = {}
 
-		self.log( output )
-
 	def log( self, logdata ):
-		""" Set stop time of test result to `now` and log the logdata to the results log file
+		""" log the logdata to the results log file
 		"""
 		# get the output log path
 		path = self.test.log_path()
@@ -47,6 +59,10 @@ class TestResult:
 	@property
 	def metrics( self ):
 		return self._metrics
+
+	@metrics.setter
+	def metrics( self, value ):
+		self._metrics  = value
 
 	def get_metric( self, name ):
 		""" Gets a metric by it's (dotted) name.
@@ -72,8 +88,8 @@ class TestResult:
 		"""
 		result = {}
 		result[ 'name' ] = self.test.name
-		result[ 'started' ] = self.start_time.isoformat( " " )
-		result[ 'completed' ] = self.stop_time.isoformat( " " )
+		result[ 'started' ] = self.started.isoformat( " " )
+		result[ 'completed' ] = self.completed.isoformat( " " )
 		result[ 'metrics' ] = self._metrics.copy()
 
 		return result
@@ -129,7 +145,8 @@ class Test:
 		stop = datetime.now()
 
 		# create a result instance
-		result = TestResult( self, start, stop, output )
+		result = TestResult( self, start, stop )
+		result.log( output )
 
 		for metric in metrics:
 			value = metric.collect( self )
