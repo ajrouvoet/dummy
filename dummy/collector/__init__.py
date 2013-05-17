@@ -1,6 +1,6 @@
 import json
 
-class Collector:
+class Collector( object ):
 	""" Abstract base class Collector
 	"""
 

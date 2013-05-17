@@ -2,7 +2,7 @@ import logging
 
 logger = logging.getLogger( __name__ )
 
-class Statistic:
+class Statistic( object ):
 
 	@classmethod
 	def parse( cls, name, conf ):
@@ -43,7 +43,7 @@ class Statistic:
 
 		return result
 
-class Engine:
+class Engine( object ):
 
 	def __init__( self, metric="" ):
 		self.metric = metric
