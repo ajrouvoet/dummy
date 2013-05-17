@@ -13,8 +13,8 @@ class TestResult:
 	""" Stores the result from executing a test
 	"""
 
-	@staticmethod
-	def unserialize( dict ):
+	@classmethod
+	def unserialize( cls, dict ):
 		""" Unserializes a dictionary to a TestResult.
 
 			This only works well if dict is formatted according to the serialize() method.
@@ -26,9 +26,11 @@ class TestResult:
 		# Assume that name, started and completed are in dict.
 		try:
 			test = Test(dict[ 'name' ])
-			result = TestResult(test, dict[ 'started' ], dict[ 'completed' ])
+			result = cls(test, dict[ 'started' ], dict[ 'completed' ])
 			if 'metrics' in dict:
 				result.metrics = dict['metrics']
+
+			return result
 		except KeyError as e:
 			raise KeyError( "Unproper dictionary given to unserialize as TestResult: %s", str( e ))
 
