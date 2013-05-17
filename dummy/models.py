@@ -13,22 +13,20 @@ class TestResult:
 	""" Stores the result from executing a test
 	"""
 
-	def __init__( self, test ):
+	def __init__( self, test, start, stop, output ):
+		assert start is not None
+		assert stop is not None
+
 		self.test = test
-		self.start_time = None
-		self.stop_time = None
+		self.start_time = start
+		self.stop_time = stop
 		self._metrics = {}
 
-	def start( self ):
-		""" Set start time of test result to `now`
-		"""
-		self.start_time = datetime.now()
+		self.log( output )
 
-	def complete( self, logdata ):
+	def log( self, logdata ):
 		""" Set stop time of test result to `now` and log the logdata to the results log file
 		"""
-		self.stop_time = datetime.now()
-
 		# get the output log path
 		path = self.test.log_path()
 
@@ -118,13 +116,13 @@ class Test:
 		return self.env_cache
 
 	def run( self, metrics=[] ):
-		# create a result instance
-		result = TestResult( self )
-
 		# run the actual test
-		result.start()
+		start = datetime.now()
 		output = subprocess([ config.TEST_RUNNER, self.path ], test=self )
-		result.complete( output )
+		stop = datetime.now()
+
+		# create a result instance
+		result = TestResult( self, start, stop, output )
 
 		for metric in metrics:
 			value = metric.collect( self )
