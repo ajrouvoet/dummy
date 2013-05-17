@@ -13,6 +13,11 @@ class TestResult:
 	""" Stores the result from executing a test
 	"""
 
+	@staticmethod
+	def unserialize( dict ):
+		""" Unserializes a dictionary to a TestResult.
+		"""
+
 	def __init__( self, test, start, stop, output ):
 		assert start is not None
 		assert stop is not None
@@ -117,6 +122,14 @@ class Test:
 		return self.env_cache
 
 	def run( self, metrics=[] ):
+		""" Run this Test.
+
+			raises:
+				IOError: Unable to write output to file in log directory.
+
+			return:
+				{string}: The test output.
+		"""
 		# run the actual test
 		start = datetime.now()
 		output = subprocess([ config.TEST_RUNNER, self.path ], test=self )
