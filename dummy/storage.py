@@ -4,7 +4,7 @@ import shutil
 import logging
 
 from dummy import config
-from dummy.utils import create_dir
+from dummy.utils import create_dir, subprocess
 from dummy.models import TestResult
 
 logger = logging.getLogger( __name__ )
@@ -18,7 +18,7 @@ def clean( name ):
 		raises:
 			OSError: When failed to remove storage dir.
 	"""
-	# clean the existing result dir and create a new one.
+	# clean the existing result dir.
 	result_dir = storage_dir( name )
 	try:
 		shutil.rmtree( result_dir )
@@ -31,7 +31,13 @@ def clean( name ):
 	logger.debug( "Cleaned directory: `%s`" % result_dir )
 
 def storage_dir( name ):
-	return os.path.join( config.TARGET_DIR, name )
+	return os.path.join( config.TARGET_DIR, githash(), name )
+
+def githash():
+	""" Returns the short hash of the curent git HEAD.
+	"""
+	escaped_src = r'%s' % config.SRC_DIR
+	return subprocess( ['git', 'rev-parse', '--short', 'HEAD'], cwd=escaped_src ).strip()
 
 def store( resultslist, method='json' ):
 	""" Store the completed test results to the results directory.
@@ -40,7 +46,7 @@ def store( resultslist, method='json' ):
 			IOError: Unable to write results to disk.
 	"""
 	assert method in METHOD_CHOICES, "Unkown storage method:`%s`" % method
-
+	
 	for testresult in resultslist:
 		# Clean already existing results for this test.
 		clean( testresult.test.name )
@@ -58,7 +64,7 @@ def store( resultslist, method='json' ):
 					logger.debug( "Created results dump: `%s`" % fpath )
 			except IOError as e:
 				# do not write partial results
-				clean()
+				clean( testresult.test.name )
 
 				raise IOError( "Could not write test results to disk: %s" % str( e ))
 
@@ -67,7 +73,7 @@ def store( resultslist, method='json' ):
 
 
 def load( ldir ):
-	""" Load test results from a directory
+	""" Load test results (from a single commit) from a directory.
 
 		raises:
 			IOError: When the results files is removed while reading.
