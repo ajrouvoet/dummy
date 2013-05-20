@@ -9,7 +9,7 @@ class Statistic( object ):
 		""" Parse a Statistic instance from a statistic configuration dictionary
 
 			return:
-				Metric instance
+				Statistic instance
 		"""
 		engine = conf.get( 'engine' )
 
