@@ -61,7 +61,7 @@ def store_result( result ):
 
 	logger.info( "Stored results in directory: `%s`" % config.TARGET_DIR )
 
-def load_result( commit, testname ):
+def load_result( committish, testname ):
 	""" Load test result
 
 		raises:
@@ -70,6 +70,7 @@ def load_result( commit, testname ):
 		returns:
 			TestResult instance
 	"""
+	commit = git.describe( committish )
 	fpath = storage_path( commit, testname )
 
 	logger.debug( fpath )

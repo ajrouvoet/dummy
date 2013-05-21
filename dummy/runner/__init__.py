@@ -127,7 +127,7 @@ def show( args ):
 	runner = Runner()
 
 	for name in args.tests:
-		runner.add_result( storage.load_result( name ))
+		runner.add_result( storage.load_result( 'HEAD', name ))
 
 	# replace this with something better
 	import json

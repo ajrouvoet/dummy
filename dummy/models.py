@@ -25,15 +25,18 @@ class TestResult:
 
 		# Assume that name, started and completed are in dict.
 		try:
+			# TODO every result gets a seperate test instance...
+			# possibly describing the same Test (maybe not worth fixing)
 			test = Test( data[ 'name' ] )
 			result = cls(
 				test,
-				dateutil.parser.parse( data[ 'started' ]),
-				dateutil.parser.parse( data[ 'completed' ])
+				start=dateutil.parser.parse( data[ 'started' ]),
+				stop=dateutil.parser.parse( data[ 'completed' ]),
+				commit=data[ 'commit' ]
 			)
 
 			if 'metrics' in data:
-				result.metrics = data[ 'metrics' ]
+				result.metrics = data[ 'metrics' ].copy()
 
 			return result
 		except KeyError as e:
@@ -47,7 +50,7 @@ class TestResult:
 		self.started = start
 		self.completed = stop
 		self.commit = commit
-		self._metrics = {}
+		self.metrics = {}
 
 	def log( self, logdata ):
 		""" log the logdata to the results log file
@@ -62,15 +65,7 @@ class TestResult:
 			fh.write( logdata )
 
 	def add_metric( self, metric, value ):
-		self._metrics[ metric.name ] = value
-
-	@property
-	def metrics( self ):
-		return self._metrics
-
-	@metrics.setter
-	def metrics( self, value ):
-		self._metrics  = value
+		self.metrics[ metric.name ] = value
 
 	def get_metric( self, name ):
 		""" Gets a metric by it's (dotted) name.
@@ -83,7 +78,7 @@ class TestResult:
 		names = name.split( '.' )
 
 		try:
-			value = self._metrics
+			value = self.metrics
 			for name in names:
 				value = value[ name ]
 		except KeyError:
@@ -98,7 +93,8 @@ class TestResult:
 		result[ 'name' ] = self.test.name
 		result[ 'started' ] = self.started.isoformat( " " )
 		result[ 'completed' ] = self.completed.isoformat( " " )
-		result[ 'metrics' ] = self._metrics.copy()
+		result[ 'metrics' ] = self.metrics.copy()
+		result[ 'commit' ] = self.commit
 
 		return result
 
