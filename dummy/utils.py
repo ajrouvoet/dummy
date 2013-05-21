@@ -70,4 +70,6 @@ def subprocess( args, test=None, **kwargs ):
 	# run the process
 	process = Popen( args, **kwargs )
 
+	# TODO log errors
+
 	return process.communicate()[0].decode( 'utf-8' )

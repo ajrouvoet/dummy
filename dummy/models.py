@@ -4,7 +4,7 @@ import logging
 import dateutil.parser
 from datetime import datetime
 
-from dummy import config
+from dummy import config, git
 from dummy.utils import subprocess, create_dir, plugin_environ
 from dummy.collector import Collector
 
@@ -39,13 +39,14 @@ class TestResult:
 		except KeyError as e:
 			raise KeyError( "Unproper dictionary given to unserialize as TestResult: %s", str( e ))
 
-	def __init__( self, test, start, stop):
+	def __init__( self, test, start, stop, commit=git.describe() ):
 		assert start is not None
 		assert stop is not None
 
 		self.test = test
 		self.started = start
 		self.completed = stop
+		self.commit = commit
 		self._metrics = {}
 
 	def log( self, logdata ):
