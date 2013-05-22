@@ -63,6 +63,12 @@ runner.add_argument(
 	help="Store the test results",
 	action="store_true"
 )
+runner.add_argument(
+	'-c',
+	'--commit',
+	help="Run tests against a specific commit",
+	action="store"
+)
 
 # `dummy run [-s] <name>`
 show = sub.add_parser( 'show', help="results browsing" )

@@ -52,14 +52,13 @@ def store_result( result ):
 	try:
 		with open( fpath, 'w' ) as fh:
 			json.dump( result.serialize(), fh, sort_keys=True, indent=4 )
-			logger.debug( "Created results dump: `%s`" % fpath )
 	except IOError as e:
 		# do not write partial results
 		clean_result( result )
 
 		raise IOError( "Could not write test results to disk: %s" % str( e ))
 
-	logger.info( "Stored results in directory: `%s`" % config.TARGET_DIR )
+	logger.debug( "Stored results in `%s`" % fpath )
 
 def load_result( committish, testname ):
 	""" Load test result
@@ -70,10 +69,10 @@ def load_result( committish, testname ):
 		returns:
 			TestResult instance
 	"""
+	logger.debug( committish )
 	commit = git.describe( committish )
 	fpath = storage_path( commit, testname )
 
-	logger.debug( fpath )
 	try:
 		with open( fpath ) as results:
 			data = json.load( results )
@@ -86,6 +85,6 @@ def load_result( committish, testname ):
 		else:
 			raise
 
-	logger.debug( "Loaded testresult: %s" % str( result ))
+	logger.debug( "Loaded testresult: %s (commit: %s)" % ( str( result ), commit ))
 
 	return result

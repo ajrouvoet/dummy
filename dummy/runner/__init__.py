@@ -1,4 +1,4 @@
-from dummy import config
+from dummy import config, git
 from dummy.models import Test, Metric
 from dummy.statistics import Statistic
 from dummy.runner import storage
@@ -133,15 +133,45 @@ def run( args ):
 	for test in tests:
 		runner.add_test( Test( test ))
 
-	# run the tests
-	runner.run()
+	try:
+		# if a commit is given, we need to checkout out the commit
+		# but keep the tests directory at the current branch
+		if args.commit is not None:
+			current = git.current_branch()
 
-	# gather the statistics as configured
-	runner.gather_statistics()
+			# if not on any branch currently
+			# remember the current commit
+			if current == "HEAD":
+				current = git.describe()
 
-	# store the results
-	if args.store:
-		runner.store()
+			testpaths = [ t.path for t in runner.queue ]
+
+			logger.warning( "Checking out commit `%s`" % args.commit )
+			git.checkout( args.commit )
+			git.checkout( current, paths=testpaths )
+
+		# run the tests
+		runner.run()
+
+		# gather the statistics as configured
+		runner.gather_statistics()
+
+		# store the results
+		if args.store:
+			runner.store()
+			logger.info( "Stored results!" )
+	finally:
+		# always
+		# recheckout the original branch
+		# if necessary
+		if args.commit is not None:
+			try:
+				git.checkout( current )
+				logger.info( "Checkout out the original HEAD again. Pfew!" )
+			except git.GitError as e:
+				raise Exception(
+					"Could not checkout original branch... you'll have to do that yourself. Sorry..."
+				)
 
 def show( args ):
 	runner = Runner()
@@ -159,4 +189,3 @@ def show( args ):
 		runner.output( *args.metric )
 	else:
 		runner.output()
-
