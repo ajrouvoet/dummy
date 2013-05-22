@@ -10,7 +10,7 @@ def describe( committish='HEAD' ):
 	# first try to get the tagname of this commit
 	try:
 		hash = subprocess.check_output(
-			[ 'git', 'describe', '--exact-match', '--tags' ],
+			[ 'git', 'describe', '--exact-match', '--tags', committish ],
 			stderr=subprocess.PIPE
 		)
 	except subprocess.CalledProcessError as e:
@@ -20,7 +20,7 @@ def describe( committish='HEAD' ):
 	if hash is None:
 		try:
 			hash = subprocess.check_output(
-				[ 'git', 'describe', '--always' ],
+				[ 'git', 'describe', '--always', committish ],
 				stderr=subprocess.STDOUT
 			)
 		except subprocess.CalledProcessError as e:

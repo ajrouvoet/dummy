@@ -42,14 +42,14 @@ class TestResult:
 		except KeyError as e:
 			raise KeyError( "Unproper dictionary given to unserialize as TestResult: %s", str( e ))
 
-	def __init__( self, test, start, stop, commit=git.describe() ):
+	def __init__( self, test, start, stop, commit=None ):
 		assert start is not None
 		assert stop is not None
 
 		self.test = test
 		self.started = start
 		self.completed = stop
-		self.commit = commit
+		self.commit = commit or git.describe()
 		self.metrics = {}
 
 	def log( self, logdata ):
