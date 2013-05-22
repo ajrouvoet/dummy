@@ -1,9 +1,10 @@
 import os
-from subprocess import Popen, PIPE
+import sys
 import fnmatch
 import re
 import logging
 import json
+from subprocess import Popen, PIPE
 
 from dummy.collector import Collector
 
@@ -136,12 +137,14 @@ class CCoverageCollector( Collector ):
 
 		lcov = Popen([ 'lcov', '-c', '-b', src, '-d', src ], stdout=PIPE, stderr=PIPE )
 		out, err = lcov.communicate()
-		out = out.decode( 'utf-8' )
+		out = out.decode( sys.getdefaultencoding() )
 
 		# if no gcda files were found lcov fails
 		# but this can be a valid data
 		# so report this to the user as a warning
 		if lcov.returncode == 1:
-			logger.warn( "lcov failed for test `%s`:\n\n%s" % ( test.name, err.decode( 'utf-8' )))
+			logger.warn( "lcov failed for test `%s`:\n\n%s" % ( test.name, err.decode(
+				sys.getdefaultencoding()
+			)))
 
 		return self.parse( out )

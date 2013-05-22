@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from subprocess import Popen, PIPE
 from dummy import config
@@ -72,4 +73,4 @@ def subprocess( args, test=None, **kwargs ):
 
 	# TODO log errors
 
-	return process.communicate()[0].decode( 'utf-8' )
+	return process.communicate()[0].decode( sys.getdefaultencoding() )

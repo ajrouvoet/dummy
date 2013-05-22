@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 def describe( committish='HEAD' ):
 	""" Returns the short hash of the curent git HEAD
@@ -26,4 +27,4 @@ def describe( committish='HEAD' ):
 			raise Exception( "Failed to get description of git commit. Is this a git repo?" )
 			logger.debug( "Git describe said: %s" % str( e ))
 
-	return hash.decode( 'utf-8' ).strip()
+	return hash.decode( sys.getdefaultencoding() ).strip()
