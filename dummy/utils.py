@@ -1,7 +1,7 @@
 import os
 import sys
 import logging
-from subprocess import Popen, PIPE
+import subprocess as subp
 from dummy import config
 
 logger = logging.getLogger( __name__ )
@@ -46,8 +46,8 @@ def plugin_environ( test=None ):
 	return env
 
 def subprocess( args, test=None, **kwargs ):
-	""" call a subprocess and blocks until it ends.
-		log errors on the `dummy.subprocess` logger.
+	""" call a subprocess and blocks until it ends, returning the decode data of stdout.
+		stderr is redirected to stdout as well.
 
 		The environment is merged with the `plugin_environ()` env.
 
@@ -65,12 +65,18 @@ def subprocess( args, test=None, **kwargs ):
 
 	# setup the popen kwargs
 	kwargs[ 'env' ] = env
-	kwargs[ 'stdout' ] = PIPE
-	kwargs[ 'stderr' ] = PIPE
+	kwargs[ 'stdout' ] = subp.PIPE
+	kwargs[ 'stderr' ] = subp.STDOUT
 
 	# run the process
-	process = Popen( args, **kwargs )
+	try:
+		process = subp.Popen( args, **kwargs )
+	except OSError as e:
+		if type( args[0] ) == 'list':
+			proc = " ".join( args[0] )
+		else:
+			proc = args[0]
 
-	# TODO log errors
+		raise OSError( "Failed to execute `%s`. OS said: %s" % ( proc, str( e )))
 
 	return process.communicate()[0].decode( sys.getdefaultencoding() )
