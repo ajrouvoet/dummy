@@ -151,8 +151,10 @@ def show( args ):
 			except KeyError:
 					logger.error( "We looked, but a test suite with name `%s` was not found." % suite_name )
 
-	for name in tests:
-		runner.add_result( storage.load_result( commit, name ))
+	for names in [ Test.glob( name ) for name in args.tests ]:
+		for name in names:
+			runner.add_result( storage.load_result( commit, name ))
+
 	if args.metric is not None:
 		runner.output( *args.metric )
 	else:
