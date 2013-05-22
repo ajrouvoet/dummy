@@ -104,14 +104,14 @@ def run( args ):
 	# check if we need to run a whole test suite
 	if args.suite:
 		# make sure to have a valid test suite name
-		suite = config.SUITES.get( name )
-		assert suite is not None,\
-			"We looked, but a test suite with name `%s` was not found." % name
-
-		logger.info( "Running test-suite `%s`" % name )
-		for name in suite:
-			for fname in Test.glob( name ):
-				runner.add_test( Test( fname ))
+		try:
+			suite = config.SUITES.get( name )
+			logger.info( "Running test-suite `%s`" % name )
+			for name in suite:
+				for fname in Test.glob( name ):
+					runner.add_test( Test( fname ))
+		except KeyError:
+			logger.error( "We looked, but a test suite with name `%s` was not found." % name )
 
 	# if not running a whole suite
 	# just queue the one named test
@@ -136,7 +136,22 @@ def show( args ):
 		logger.debug( "Loading result from committish `%s`" % args.commit )
 		commit = args.commit
 
-	for name in args.tests:
+	tests = args.tests
+	if args.suite:
+		for suite_name in args.tests:
+			# make sure to have a valid test suite name
+			try:
+				suite = config.SUITES.get( suite_name )
+				logger.info( "Loading tests from suite `%s`" % suite_name )
+				tests = []
+				for name in suite:
+					for fname in Test.glob( name ):
+						logger.debug( "Adding test `%s` to tests." % fname )
+						tests.append( fname )
+			except KeyError:
+					logger.error( "We looked, but a test suite with name `%s` was not found." % suite_name )
+
+	for name in tests:
 		runner.add_result( storage.load_result( commit, name ))
 	if args.metric is not None:
 		runner.output( *args.metric )
