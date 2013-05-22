@@ -1,4 +1,4 @@
-from dummy.formatter import LoggerFormatter
+from dummy.formatter import LogFormatter
 
 class ResultManager:
 	LOGGER = "logger"
@@ -13,9 +13,8 @@ class ResultManager:
 	def format( self, method, *metrics ):
 		assert method in ResultManager.FORMAT_METHOD, "Unknown format method: `%s`" % method
 
-		#Select a Formatter
+		# select a Formatter
 		if method is ResultManager.LOGGER:
-			formatter = LoggerFormatter( self.results )
-
+			formatter = LogFormatter( self.results )
 
 		formatter.format( *metrics )
