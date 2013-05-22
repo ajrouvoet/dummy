@@ -45,12 +45,17 @@ parser.add_argument(
 # `dummy run [-s] <name>`
 runner = sub.add_parser( 'run', help="run tests" )
 runner.set_defaults( func='run' )
-runner.add_argument( 'name', help="test name (or suite name if -S is given)" )
+runner.add_argument(
+	'tests',
+	help="names of the tests to run",
+	nargs="*"
+)
 runner.add_argument(
 	'-S',
 	'--suite',
-	help="interpret `name` argument as the name of a test suite",
-	action="store_true"
+	help="names of the suites to run",
+	action="append",
+	default=[]
 )
 runner.add_argument(
 	'-s',
@@ -63,27 +68,29 @@ runner.add_argument(
 show = sub.add_parser( 'show', help="results browsing" )
 show.set_defaults( func='show' )
 show.add_argument(
+	'tests',
+	help="names of the tests to inspect",
+	nargs="*"
+)
+show.add_argument(
 	'-S',
 	'--suite',
-	help="interpret `name` argument as the name of a test suite",
-	action="store_true"
+	help="names of the suites to inspect",
+	action="append",
+	default=[]
 )
 show.add_argument(
 	'-m',
 	'--metric',
 	help="Show a specific metric or multiple metrics",
-	action="append"
+	action="append",
+	default=[]
 )
 show.add_argument(
 	'-c',
 	'--commit',
 	help="Show results of a specific committish",
 	action="store"
-)
-show.add_argument(
-	'tests',
-	help="names of the tests or suites (if -S is given) to inspect",
-	nargs="+"
 )
 
 if __name__ == "__main__":

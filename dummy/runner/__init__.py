@@ -80,12 +80,12 @@ class Runner:
 		""" run the tests in the queue
 		"""
 		self.clean()
-		logger.info( 40*"-" )
+		logger.info( 80*"-" )
 
 		while len( self.queue ) != 0:
 			test = self.queue.pop()
 			self.run_test( test )
-			logger.info( 40*"-" )
+			logger.info( 80*"-" )
 
 	def store( self ):
 		for result in self.results:
@@ -95,29 +95,43 @@ class Runner:
 		resultmanager = ResultManager( self.results )
 		resultmanager.format( 'logger', *metrics )
 
-# subprogram run
-def run( args ):
-	name = args.name
-	runner = Runner()
+def _discover_tests( args ):
+	tests = []
 
-	# discover the tests we need to run and add them to the runner
-	# check if we need to run a whole test suite
-	if args.suite:
+	# try to find the suites and append the testnames
+	# of the suite
+	for name in args.suite:
 		# make sure to have a valid test suite name
 		try:
 			suite = config.SUITES.get( name )
-			logger.info( "Running test-suite `%s`" % name )
-			for name in suite:
-				for fname in Test.glob( name ):
-					runner.add_test( Test( fname ))
+			logger.info( "Loading tests from suite `%s`" % name )
+			for descr in suite:
+				for fname in Test.glob( descr ):
+					logger.debug( "Adding test `%s` to tests." % fname )
+					tests.append( fname )
 		except KeyError:
 			logger.error( "We looked, but a test suite with name `%s` was not found." % name )
 
 	# if not running a whole suite
-	# just queue the one named test
-	else:
-		for n in Test.glob( name ):
-			runner.add_test( Test( n ))
+	# just queue the named tests
+	for names in [ Test.glob( name ) for name in args.tests ]:
+		for name in names:
+			tests.append( name )
+
+	# remove doubles
+	tests = list( set( tests ))
+
+	return tests
+
+# subprogram run
+def run( args ):
+	runner = Runner()
+
+	# discover the tests we need to run and add them to the runner
+	tests = _discover_tests( args )
+	assert len( tests ) != 0, "No tests selected to run"
+	for test in tests:
+		runner.add_test( Test( test ))
 
 	# run the tests
 	runner.run()
@@ -137,26 +151,12 @@ def show( args ):
 		logger.debug( "Loading result from committish `%s`" % args.commit )
 		commit = args.commit
 
-	tests = args.tests
-	if args.suite:
-		for suite_name in args.tests:
-			# make sure to have a valid test suite name
-			try:
-				suite = config.SUITES.get( suite_name )
-				logger.info( "Loading tests from suite `%s`" % suite_name )
-				tests = []
-				for name in suite:
-					for fname in Test.glob( name ):
-						logger.debug( "Adding test `%s` to tests." % fname )
-						tests.append( fname )
-			except KeyError:
-					logger.error( "We looked, but a test suite with name `%s` was not found." % suite_name )
-
-	for names in [ Test.glob( name ) for name in args.tests ]:
-		for name in names:
-			runner.add_result( storage.load_result( commit, name ))
+	# discover the tests we need to run and add them to the runner
+	for name in _discover_tests( args ):
+		runner.add_result( storage.load_result( commit, name ))
 
 	if args.metric is not None:
 		runner.output( *args.metric )
 	else:
 		runner.output()
+
