@@ -80,12 +80,12 @@ class Runner:
 		""" run the tests in the queue
 		"""
 		self.clean()
-		logger.info( 80*"-" )
+		logger.info( 40*"-" )
 
 		while len( self.queue ) != 0:
 			test = self.queue.pop()
 			self.run_test( test )
-			logger.info( 80*"-" )
+			logger.info( 40*"-" )
 
 	def store( self ):
 		for result in self.results:
@@ -116,7 +116,8 @@ def run( args ):
 	# if not running a whole suite
 	# just queue the one named test
 	else:
-		runner.add_test( Test( name ))
+		for n in Test.glob( name ):
+			runner.add_test( Test( n ))
 
 	# run the tests
 	runner.run()
