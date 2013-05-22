@@ -91,9 +91,9 @@ class Runner:
 		for result in self.results:
 			storage.store_result( result )
 
-	def output( self ):
+	def output( self, *metrics ):
 		resultmanager = ResultManager( self.results )
-		resultmanager.format()
+		resultmanager.format( 'logger', *metrics )
 
 # subprogram run
 def run( args ):
@@ -133,5 +133,7 @@ def show( args ):
 
 	for name in args.tests:
 		runner.add_result( storage.load_result( 'HEAD', name ))
-
-	runner.output()
+	if args.metric is not None:
+		runner.output( *args.metric )
+	else:
+		runner.output()

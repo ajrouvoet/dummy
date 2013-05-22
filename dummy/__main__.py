@@ -69,6 +69,12 @@ show.add_argument(
 	action="store_true"
 )
 show.add_argument(
+	'-m',
+	'--metric',
+	help="Show a specific metric or multiple metrics",
+	action="append"
+)
+show.add_argument(
 	'tests',
 	help="names of the tests or suites (if -S is given) to inspect",
 	nargs="+"

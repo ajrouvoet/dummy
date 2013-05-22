@@ -10,7 +10,7 @@ class ResultManager:
 	def add_result( self, result ):
 		self.results.append( result )
 
-	def format( self, method="logger", *metrics ):
+	def format( self, method, *metrics ):
 		assert method in ResultManager.FORMAT_METHOD, "Unknown format method: `%s`" % method
 
 		#Select a Formatter
