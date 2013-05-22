@@ -75,6 +75,12 @@ show.add_argument(
 	action="append"
 )
 show.add_argument(
+	'-c',
+	'--commit',
+	help="Show results of a specific committish",
+	action="store"
+)
+show.add_argument(
 	'tests',
 	help="names of the tests or suites (if -S is given) to inspect",
 	nargs="+"

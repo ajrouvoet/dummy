@@ -131,8 +131,13 @@ def run( args ):
 def show( args ):
 	runner = Runner()
 
+	commit = 'HEAD'
+	if args.commit is not None:
+		logger.debug( "Loading result from committish `%s`" % args.commit )
+		commit = args.commit
+
 	for name in args.tests:
-		runner.add_result( storage.load_result( 'HEAD', name ))
+		runner.add_result( storage.load_result( commit, name ))
 	if args.metric is not None:
 		runner.output( *args.metric )
 	else:
