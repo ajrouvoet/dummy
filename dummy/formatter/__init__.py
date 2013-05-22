@@ -1,11 +1,11 @@
 import logging
-import dummy.models import TestResult
+from dummy.models import TestResult
 
 logger = logging.getLogger( __name__ )
 
-class Formatter:
+class Formatter( object ):
 	def __init__( self, testresults ):
-		self.testresults = testresult
+		self.testresults = testresults
 
 	def format( self, *metrics ):
 		raise NotImplementedError( "Not implemented" )
@@ -25,14 +25,14 @@ class LoggerFormatter( Formatter ):
 			# Note: You cannot do metrics = testresult.metrics, because of th next loop.
 			if len( metrics ) == 0:
 				for metric_name in testresult.metrics:
-					output_metric( testresult, metric_name )
+					self.output_metric( testresult, metric_name )
 			else:
 				for metric_name in metrics:
-					output_metric( testresult, metric_name )
+					self.output_metric( testresult, metric_name )
 
 	def output_metric( self, testresult, metric_name ):
 		if metric_name in testresult.metrics:
-			metric = testresult.metrics[ 'metric_name' ]
+			metric = testresult.metrics[ metric_name ]
 			logger.info( "Metric `%s` : %s" % ( metric_name, metric ))
 		else:
 			logger.warn( "This result does not contain metric `%s`." % metric_name )

@@ -2,6 +2,7 @@ from dummy import config
 from dummy.models import Test, Metric
 from dummy.statistics import Statistic
 from dummy.runner import storage
+from dummy.formatter.resultmanager import ResultManager
 
 import os
 import glob
@@ -90,6 +91,10 @@ class Runner:
 		for result in self.results:
 			storage.store_result( result )
 
+	def output( self ):
+		resultmanager = ResultManager( self.results )
+		resultmanager.format()
+
 # subprogram run
 def run( args ):
 	name = args.name
@@ -129,7 +134,4 @@ def show( args ):
 	for name in args.tests:
 		runner.add_result( storage.load_result( 'HEAD', name ))
 
-	# replace this with something better
-	import json
-	for result in runner.results:
-		logger.info( json.dumps( result.serialize(), indent=4 ))
+	runner.output()

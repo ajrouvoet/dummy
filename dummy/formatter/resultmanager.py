@@ -11,11 +11,11 @@ class ResultManager:
 		self.results.append( result )
 
 	def format( self, method="logger", *metrics ):
-		assert method in TestResultFormatter.FORMAT_METHOD, "Unknown format method: `%s`" % method
+		assert method in ResultManager.FORMAT_METHOD, "Unknown format method: `%s`" % method
 
 		#Select a Formatter
-		if method is LOGGER:
-			formatter = LoggerFormatter()
+		if method is ResultManager.LOGGER:
+			formatter = LoggerFormatter( self.results )
 
 
 		formatter.format( *metrics )
