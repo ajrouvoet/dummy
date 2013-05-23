@@ -74,15 +74,12 @@ class LogFormatter( Formatter ):
 			logformatter.unindent()
 
 	def format_metric( self, testresult, metric_name ):
-		if metric_name in testresult.metrics:
-			metric = testresult.metrics[ metric_name ]
+		metric = testresult.get_metric( metric_name ) # metrics[ metric_name ]
 
-			if type( metric ) in [ dict, list ]:
-				logger.info( colored( "%s" % metric_name, 'white' ) + ":" )
-				logformatter.indent()
-				logger.info( json.dumps( metric, indent=4 ))
-				logformatter.unindent()
-			else:
-				logger.info( colored( "%s" % metric_name, 'white' ) + ": %s" %  metric )
+		if type( metric ) in [ dict, list ]:
+			logger.info( colored( "%s" % metric_name, 'white' ) + ":" )
+			logformatter.indent()
+			logger.info( json.dumps( metric, indent=4 ))
+			logformatter.unindent()
 		else:
-			logger.warn( "This result does not contain metric `%s`." % metric_name )
+			logger.info( colored( "%s" % metric_name, 'white' ) + ": %s" %  metric )

@@ -52,6 +52,9 @@ class TestResult:
 		self.commit = commit or git.describe()
 		self.metrics = {}
 
+		# additional test result files by name
+		self.files = {}
+
 	def log( self, logdata ):
 		""" log the logdata to the results log file
 		"""

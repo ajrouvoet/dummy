@@ -45,22 +45,38 @@ class CCoverageCollector( Collector ):
 			returns:
 				{dict}: coverage results of the form:
 							{
-								'<filename>': {
-									'lines': <int>,
-									'lines_hit': <int>,
-									'branches': <int>,
-									'branches_hit': <int>,
-									'functions': {
-										'<name'>: <times_run>
-										'<name'>: <times_run>
-										...
+								'files': {
+									'<filename>': {
+										'lines': <int>,
+										'lines_hit': <int>,
+										'functions': <int>,
+										'functions_hit': <int>,
+										'branches': <int>,
+										'branches_hit': <int>,
+										'functions': {
+											'<name'>: <times_run>
+											'<name'>: <times_run>
+											...
+										}
 									}
-								}
+								},
+								'lines': <int>,
+								'lines_hit': <int>,
+								'functions': <int>,
+								'functions_hit': <int>
 							}
 		"""
-		result = {}
+		result = {
+			'files': {}
+		}
 		fresult = None
 		fpath = None
+
+		# totals over the test
+		lines = 0
+		lines_hit = 0
+		functions = 0
+		functions_hit = 0
 
 		for line in output.splitlines():
 			# first make sure we are in a file section
@@ -80,25 +96,45 @@ class CCoverageCollector( Collector ):
 				# functions hit
 				m = CCoverageCollector.rfunctions_hit.match( line )
 				if m is not None:
-					fresult[ 'functions_hit' ] = int( m.group( 'hits' ))
+					hit = int( m.group( 'hits' ))
+					fresult[ 'functions_hit' ] = hit
+
+					# also add to the total
+					functions_hit += hit
+
 					continue
 
 				# functions found
 				m = CCoverageCollector.rfunctions_found.match( line )
 				if m is not None:
-					fresult[ 'functions' ] = int( m.group( 'found' ))
+					found = int( m.group( 'found' ))
+					fresult[ 'functions' ] = found
+
+					# also add to the total
+					functions += found
+
 					continue
 
 				# lines hit
 				m = CCoverageCollector.rlines_hit.match( line )
 				if m is not None:
-					fresult[ 'lines_hit' ] = int( m.group( 'hits' ))
+					hit = int( m.group( 'hits' ))
+					fresult[ 'lines_hit' ] = hit
+
+					# total
+					lines_hit += hit
+
 					continue
 
 				# lines found
 				m = CCoverageCollector.rlines_found.match( line )
 				if m is not None:
-					fresult[ 'lines' ] = int( m.group( 'found' ))
+					found = int( m.group( 'found' ))
+					fresult[ 'lines' ] = found
+
+					# total
+					lines += found
+
 					continue
 
 				# file path
@@ -111,12 +147,17 @@ class CCoverageCollector( Collector ):
 				m = CCoverageCollector.rfooter.match( line )
 				if m is not None:
 					assert fpath is not None, "lcov file section had no SF entry (no file path)"
-					result[ fpath ] = fresult
+					result[ 'files' ][ fpath ] = fresult
 					fresult = None
 					continue
 
 				# if we got here, we got an unrecognized line
 				logger.debug( "Got unrecognizable line: %s" % line )
+
+		result[ 'lines' ] = lines
+		result[ 'lines_hit' ] = lines_hit
+		result[ 'functions' ] = functions
+		result[ 'functions_hit' ] = functions_hit
 
 		return result
 
@@ -136,9 +177,12 @@ class CCoverageCollector( Collector ):
 		# collect the lcov data from the src directory
 		src = test.env().get( 'SRC_DIR' )
 
+		# run lcov and get the output
 		lcov = Popen([ 'lcov', '-c', '-b', src, '-d', src ], stdout=PIPE, stderr=PIPE )
 		out, err = lcov.communicate()
 		out = out.decode( dummy.INPUT_ENCODING )
+
+		# write it to a info file for merging later
 
 		# if no gcda files were found lcov fails
 		# but this can be a valid data

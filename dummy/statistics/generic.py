@@ -1,5 +1,6 @@
 import logging
 from dummy.statistics import Engine
+from dummy.runner import storage
 
 logger = logging.getLogger( __name__ )
 
@@ -26,7 +27,7 @@ class CountEngine( Engine ):
 
 class CoverageOverviewEngine( Engine ):
 
-	def __init__( self, metric="coverage" ):
+	def __init__( self, metric="coverage.files" ):
 		super( CoverageOverviewEngine, self ).__init__( metric )
 
 		self.lines = 0
@@ -36,8 +37,8 @@ class CoverageOverviewEngine( Engine ):
 
 	def get_result( self ):
 		return {
-			'lines_percentage': round( 
-					float( self.lines_hit ) / self.lines * 100 
+			'lines_percentage': round(
+					float( self.lines_hit ) / self.lines * 100
 				) if self.lines > 0 else 0,
 			'function_percentage': round(
 					float( self.functions_hit ) / self.functions * 100
@@ -58,4 +59,3 @@ class CoverageOverviewEngine( Engine ):
 				self.lines_hit += value[ 'lines_hit' ]
 			except KeyError as e:
 				raise KeyError( "Wrongly formatted data for CoverageOverviewEngine: %s" % str( e ))
-
