@@ -2,6 +2,8 @@ import os
 import sys
 import logging
 import subprocess as subp
+
+import dummy
 from dummy import config
 
 logger = logging.getLogger( __name__ )
@@ -79,4 +81,4 @@ def subprocess( args, test=None, **kwargs ):
 
 		raise OSError( "Failed to execute `%s`. OS said: %s" % ( proc, str( e )))
 
-	return process.communicate()[0].decode( sys.getdefaultencoding() )
+	return process.communicate()[0].decode( dummy.INPUT_ENCODING )

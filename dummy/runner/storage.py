@@ -51,6 +51,7 @@ def store_result( result ):
 	# write the results to file
 	try:
 		with open( fpath, 'w' ) as fh:
+			# encoding defaults to utf8; done
 			json.dump( result.serialize(), fh, sort_keys=True, indent=4 )
 	except IOError as e:
 		# do not write partial results

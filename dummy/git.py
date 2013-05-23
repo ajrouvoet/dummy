@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import dummy
 
 class GitError( Exception ):
 	pass
@@ -32,7 +33,7 @@ def current_branch():
 				[ 'git', 'rev-parse', '--abbrev-ref', 'HEAD' ],
 				stderr=subprocess.PIPE
 			)\
-			.decode( sys.getdefaultencoding() )\
+			.decode( dummy.INPUT_ENCODING )\
 			.strip()
 	except subprocess.CalledProcessError as e:
 		raise GitError( "Could not get current branch name: %s" % ( e.output ))
@@ -65,4 +66,4 @@ def describe( committish='HEAD' ):
 			raise GitError( "Failed to get description of git commit. Is this a git repo?" )
 			logger.debug( "Git describe said: %s" % str( e ))
 
-	return hash.decode( sys.getdefaultencoding() ).strip()
+	return hash.decode( dummy.INPUT_ENCODING ).strip()

@@ -153,7 +153,7 @@ class Test:
 
 		# create a result instance
 		result = TestResult( self, start, stop )
-		result.log( output )
+		result.log( output.encode( 'utf8' ))
 
 		for metric in metrics:
 			value = metric.collect( self )
