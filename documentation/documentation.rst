@@ -11,7 +11,7 @@ Launch Options
 
 General launch options:
 
-Debug mode
+**Debug mode**
 	Debug mode can be used by developers to find errors in the dummy execution::
 
 		dummy -D <action and args>
@@ -33,6 +33,7 @@ Options:
 **Store**
 	The results can be stored in the configured results directory with this flag::
 
+		dummy run --store <test name>
 		dummy run -s <test name>
 
 **Suite**

@@ -93,7 +93,7 @@ This suite can be run by running the following (the ``-s`` flag is optional)::
 
 	dummy run -[s]S all
 
-The results for an entires suite can be viewed with the followig command::
+The results for an entire suite can be viewed with the followig command::
 
 	dummy show -S all
 
