@@ -14,6 +14,7 @@ Contents:
 	quickstart
 	installation
 	documentation
+	sourcedocs
 
 .. todolist::
 
