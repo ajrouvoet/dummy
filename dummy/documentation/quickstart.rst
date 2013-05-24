@@ -33,7 +33,7 @@ Import the Pass/Fail collector by adding the following import statement under th
 
 	from dummy.collectors.generic import PassFailCollector
 
-Next add this collector to the list of :term:`metric` you want to collect ``METRICS``::
+Next add this :term:`collector` to the list of :term:`metric` you want to collect ``METRICS``::
 
 	METRICS = {
 		# passing/failing of a test is configured as a collector
@@ -43,10 +43,10 @@ Next add this collector to the list of :term:`metric` you want to collect ``METR
 	}
 
 After running all the tests, it is often useful to have an aggregated report with an overview of all the collected metrics.
-Statistics collect aggregated data over multiple tests.
+A :term:`statistic` collects aggregated data over multiple tests.
 Counting the number of passing and failing tests, is one generic statistic that is included with Dummy.
 
-Let's add the counting engine as a Statistic. First import ``CountEngine`` by adding the following line under ``import os``::
+Let's add the counting :term:`engine` as a Statistic. First import ``CountEngine`` by adding the following line under ``import os``::
 
 	from dummy.statistics.generic import CountEngine
 

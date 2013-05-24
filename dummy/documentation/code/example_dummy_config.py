@@ -33,6 +33,6 @@ STATISTICS = {
 
         # let's count for example the amount of tests failed/passed
         'tests passing': {
-                'engine': CountEngine
+                'engine': CountEngine()
         },
 }
