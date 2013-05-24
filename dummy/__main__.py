@@ -98,6 +98,12 @@ show.add_argument(
 	help="Show results of a specific committish",
 	action="store"
 )
+show.add_argument(
+	'-p',
+	'--plot',
+	help="Show results in a plot",
+	action="store_true"
+)
 
 if __name__ == "__main__":
 	args = parser.parse_args()

@@ -2,7 +2,7 @@ from dummy import config, git
 from dummy.models import Test, Metric
 from dummy.statistics import Statistic
 from dummy.runner import storage
-from dummy.formatter.resultmanager import ResultManager
+from dummy.formatter import ResultManager
 
 import os
 import glob
@@ -93,7 +93,11 @@ class Runner:
 
 	def output( self, *metrics ):
 		resultmanager = ResultManager( self.results )
-		resultmanager.format( 'logger', *metrics )
+		resultmanager.format( 'log', *metrics )
+
+	def plot( self, *metrics ):
+		resultmanager = ResultManager( self.results )
+		resultmanager.format( 'plot', *metrics )
 
 def _discover_tests( args ):
 	tests = []
@@ -185,7 +189,12 @@ def show( args ):
 	for name in _discover_tests( args ):
 		runner.add_result( storage.load_result( commit, name ))
 
-	if args.metric is not None:
-		runner.output( *args.metric )
+	if args.plot:
+		f = runner.plot
 	else:
-		runner.output()
+		f = runner.output
+
+	if args.metric is not None:
+		f( *args.metric )
+	else:
+		f( plot=args.plot )

@@ -2,17 +2,20 @@ import logging
 import json
 import re
 
+import pylab
 from termcolor import colored
 
 from dummy.models import TestResult
 
-__all__ = ( 'Formatter', 'LogFormatter' )
+__all__ = ( 'Formatter', 'LogFormatter', 'ResultsManager' )
+
+logger = logging.getLogger( __name__ )
 
 # configure the results logger
-logger = logging.getLogger( "resultformatter" )
-logger.setLevel( logging.INFO )
+printer = logging.getLogger( "resultformatter" )
+printer.setLevel( logging.INFO )
 ch = logging.StreamHandler()
-logger.addHandler( ch )
+printer.addHandler( ch )
 
 class IndentFormatter( logging.Formatter ):
 
@@ -53,12 +56,12 @@ class LogFormatter( Formatter ):
 		for testresult in self.testresults:
 			title = colored( "%s (%s)" % ( testresult.test.name, testresult.commit ), 'green' )
 
-			logger.info( len( title ) * "-" )
-			logger.info( title )
-			logger.info( len( title ) * "-" )
+			printer.info( len( title ) * "-" )
+			printer.info( title )
+			printer.info( len( title ) * "-" )
 			logformatter.indent()
-			logger.info( colored( 'started', 'white' ) + ": %s" % testresult.started )
-			logger.info( colored( 'completed', 'white' ) + ": %s" % testresult.completed )
+			printer.info( colored( 'started', 'white' ) + ": %s" % testresult.started )
+			printer.info( colored( 'completed', 'white' ) + ": %s" % testresult.completed )
 
 			# Format metrics
 			# If no metrics given, format all metrics
@@ -77,9 +80,74 @@ class LogFormatter( Formatter ):
 		metric = testresult.get_metric( metric_name ) # metrics[ metric_name ]
 
 		if type( metric ) in [ dict, list ]:
-			logger.info( colored( "%s" % metric_name, 'white' ) + ":" )
+			printer.info( colored( "%s" % metric_name, 'white' ) + ":" )
 			logformatter.indent()
-			logger.info( json.dumps( metric, indent=4 ))
+			printer.info( json.dumps( metric, indent=4 ))
 			logformatter.unindent()
 		else:
-			logger.info( colored( "%s" % metric_name, 'white' ) + ": %s" %  metric )
+			printer.info( colored( "%s" % metric_name, 'white' ) + ": %s" %  metric )
+
+class PlotFormatter( Formatter ):
+
+	def format( self, *metrics ):
+		# create the figure
+		fig = pylab.figure( facecolor='white' )
+
+		# get the xlabels
+		x = range( 1, len( self.testresults ) + 1 )
+		xlabels = [ t.test.name for t in self.testresults ]
+
+		pylab.title( 'Metric values per test (commit: %s)' % self.testresults[0].commit, fontsize=22 )
+		pylab.legend()
+		pylab.xticks( rotation=20 )
+		pylab.grid( True, markevery='integer' )
+		pylab.xlabel( 'tests', fontsize=16 )
+		pylab.margins( 0.05 )
+		pylab.xticks( x, xlabels )
+
+		# create the plots
+		for metric in metrics:
+			self.format_metric( metric )
+
+		# and show it
+		pylab.show()
+
+	def format_metric( self, metric ):
+		x = range( 1, len( self.testresults ) + 1 )
+		y = [ t.get_metric( metric ) for t in self.testresults ]
+
+		try:
+			plot = pylab.plot( x, y )
+			pylab.setp( plot,
+				label=metric,
+				linewidth=2.0,
+				marker=".",
+				markersize=8.0,
+				aa=True
+			)
+		except TypeError as e:
+			raise Exception(
+				"The metric `%s` is not numeric and can thus not be plotted." % metric
+			)
+
+class ResultManager:
+	LOG = "log"
+	PLOT = "plot"
+	FORMAT_METHODS = ( LOG, PLOT )
+
+	def __init__( self, results ):
+		self.results = results
+
+	def add_result( self, result ):
+		self.results.append( result )
+
+	def format( self, method, *metrics ):
+		assert method in ResultManager.FORMAT_METHODS, "Unknown format method: `%s`" % method
+
+		# select a Formatter
+		if method is ResultManager.LOG:
+			formatter = LogFormatter( self.results )
+		elif method is ResultManager.PLOT:
+			formatter = PlotFormatter( self.results )
+
+		formatter.format( *metrics )
