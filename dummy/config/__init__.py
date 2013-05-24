@@ -17,4 +17,4 @@ try:
 
 except ImportError as e:
 	# clearify the error a bit
-	raise ImportError( "Project configuration could not be imported: %s" % e.msg )
+	raise ImportError( "Project configuration could not be imported: %s" % e)
