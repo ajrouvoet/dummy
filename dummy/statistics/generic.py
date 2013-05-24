@@ -1,6 +1,5 @@
 import logging
 from dummy.statistics import Engine
-from dummy.runner import storage
 
 logger = logging.getLogger( __name__ )
 

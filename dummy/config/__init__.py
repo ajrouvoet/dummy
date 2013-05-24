@@ -14,7 +14,6 @@ try:
 	if os.path.exists( os.path.join( os.getcwd(), DUMMY_CONFIG_FILE )):
 		sys.path.append( os.getcwd() )
 		from dummy_config import *
-
 except ImportError as e:
 	# clearify the error a bit
-	raise ImportError( "Project configuration could not be imported: %s" % e)
+	raise ImportError( "Project configuration could not be imported: %s" % str( e ))
