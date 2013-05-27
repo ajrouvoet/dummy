@@ -83,7 +83,13 @@ class LogFormatter( Formatter ):
 	def format_metric( self, testresult, metric_name ):
 		""" Process a single metric of a testresult.
 		"""
+		logger.debug( "Processing metric `%s`" % metric_name )
 		metric = testresult.get_metric( metric_name ) # metrics[ metric_name ]
+		# Skip metrics with no associated metric results.
+		if metric is None:
+			logger.warn( "No associated metric result `%s` for test `%s`." \
+			% (metric_name, testresult.test.name))
+			return
 
 		if type( metric ) in [ dict, list ]:
 			printer.info( colored( "%s" % metric_name, 'white' ) + ":" )

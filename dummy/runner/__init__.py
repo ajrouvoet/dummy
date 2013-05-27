@@ -171,7 +171,7 @@ def run( args ):
 		if args.commit is not None:
 			try:
 				git.checkout( current )
-				logger.info( "Checkout out the original HEAD again. Pfew!" )
+				logger.info( "Checked out the original HEAD again!" )
 			except git.GitError as e:
 				raise Exception(
 					"Could not checkout original branch... you'll have to do that yourself. Sorry..."
