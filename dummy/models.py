@@ -112,7 +112,10 @@ class Test:
 		matches = glob.glob( path )
 
 		# now remove the path prefix
-		return [ m[ (len( config.TESTS_DIR)+1): ] for m in matches ]
+		test_paths = [ m[ (len( config.TESTS_DIR)+1): ] for m in matches ]
+		if len( test_paths ) == 0:
+			logger.error( "Did not find any tests associated with name `%s`" % name )
+		return test_paths
 
 	def __init__( self, name ):
 		""" raises:
