@@ -136,7 +136,7 @@ class PlotFormatter( Formatter ):
 				aa=True
 			)
 		except TypeError as e:
-			raise Exception(
+			raise TypeError(
 				"The metric `%s` is not numeric and can thus not be plotted." % metric
 			)
 

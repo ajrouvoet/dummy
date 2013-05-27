@@ -105,10 +105,10 @@ def _discover_tests( args ):
 	# try to find the suites and append the testnames
 	# of the suite
 	for name in args.suite:
+		logger.info( "Loading tests from suite `%s`" % name )
 		# make sure to have a valid test suite name
 		try:
-			suite = config.SUITES.get( name )
-			logger.info( "Loading tests from suite `%s`" % name )
+			suite = config.SUITES[ name ]
 			for descr in suite:
 				for fname in Test.glob( descr ):
 					logger.debug( "Adding test `%s` to tests." % fname )
@@ -133,7 +133,7 @@ def run( args ):
 
 	# discover the tests we need to run and add them to the runner
 	tests = _discover_tests( args )
-	assert len( tests ) != 0, "No tests selected to run"
+	assert len( tests ) != 0, "No tests to run."
 	for test in tests:
 		runner.add_test( Test( test ))
 
