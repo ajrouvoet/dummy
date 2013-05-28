@@ -59,9 +59,10 @@ class Runner:
 		logger.info( "Running pre-test hooks..." )
 		self.pre_test_hook( test )
 
+		total_tests = len(self.queue) + len(self.completed)+1
 		# run the test
 		# and save the TestResult
-		logger.info( "Running test: `%s`" % test.name )
+		logger.info( "Running test: `%s` [%d/%d]" % (test.name, len(self.completed)+1, total_tests ))
 		self.results.append( test.run( self.metrics.values() ))
 
 		# complete it
@@ -213,7 +214,7 @@ def show( args ):
 # 	choice = raw_input( "[y/n]" )
 # 	if choice != "y":
 # 		logger.warning( "Aborting..." )
-# 
+#
 # 	logger.info( "Copying default configuration to current directory." )
 # 	(file, default_path, description) = imp.find_module( dummy.config.defaults )
 # 	shutil.copy( default_path, 'dummy_config.py' )
