@@ -2,10 +2,7 @@ import logging
 import json
 import re
 
-import pylab #Pylab is unused except for plotting.
 from termcolor import colored
-
-from dummy.models import TestResult
 
 __all__ = ( 'Formatter', 'LogFormatter', 'ResultsManager' )
 
@@ -99,59 +96,7 @@ class LogFormatter( Formatter ):
 		else:
 			printer.info( colored( "%s" % metric_name, 'white' ) + ": %s" %  metric )
 
-class PlotFormatter( Formatter ):
-	""" The PlotFormatter outputs tests results to a plot.
-	"""
-
-	def format( self, *metrics ):
-		# create the figure
-		fig = pylab.figure( facecolor='white' )
-
-		# get the xlabels
-		x = range( 1, len( self.testresults ) + 1 )
-		xlabels = [ t.test.name for t in self.testresults ]
-
-		pylab.title( 'Metric values per test (commit: %s)' % self.testresults[0].commit, fontsize=22 )
-		pylab.xticks( rotation=20 )
-		pylab.grid( True, markevery='integer' )
-		pylab.xlabel( 'tests', fontsize=16 )
-		pylab.margins( 0.05 )
-		pylab.xticks( x, xlabels )
-
-		# create the plots
-		for metric in metrics:
-			self.format_metric( metric )
-
-		# and show it
-		pylab.legend()
-		pylab.show()
-
-	def format_metric( self, metric ):
-		""" Process a single metric in all testresults.
-		"""
-		x = range( 1, len( self.testresults ) + 1 )
-		y = [ t.get_metric( metric ) for t in self.testresults ]
-
-		try:
-			plot = pylab.plot( x, y )
-			pylab.setp( plot,
-				label=metric,
-				linestyle='dashed',
-				linewidth=1.0,
-				marker=".",
-				markersize=12.0,
-				aa=True
-			)
-		except TypeError as e:
-			raise TypeError(
-				"The metric `%s` is not numeric and can thus not be plotted." % metric
-			)
-
 class ResultManager:
-	LOG = "log"
-	PLOT = "plot"
-	FORMAT_METHODS = ( LOG, PLOT )
-
 	def __init__( self, results ):
 		self.results = results
 
@@ -160,19 +105,15 @@ class ResultManager:
 		"""
 		self.results.append( result )
 
-	def format( self, method, *metrics ):
+	def format( self, *metrics, **kwargs ):
 		""" Format the results into the specified format.
 
 			Supported methods: `log`, `plot`.
 
 			Raises: AssertionError when the method is not supported.
 		"""
-		assert method in ResultManager.FORMAT_METHODS, "Unknown format method: `%s`" % method
+		# default the formatter
+		formatter = kwargs.get( 'formatter', LogFormatter )
 
-		# select a Formatter
-		if method is ResultManager.LOG:
-			formatter = LogFormatter( self.results )
-		elif method is ResultManager.PLOT:
-			formatter = PlotFormatter( self.results )
-
-		formatter.format( *metrics )
+		# format the results using the selected formatter
+		formatter( self.results ).format( *metrics )

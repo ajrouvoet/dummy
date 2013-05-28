@@ -92,12 +92,16 @@ class Runner:
 			storage.store_result( result )
 
 	def output( self, *metrics ):
+		from dummy.formatter import LogFormatter
+
 		resultmanager = ResultManager( self.results )
-		resultmanager.format( 'log', *metrics )
+		resultmanager.format( *metrics, formatter=LogFormatter )
 
 	def plot( self, *metrics ):
+		from dummy.formatter.plotting import PlotFormatter
+
 		resultmanager = ResultManager( self.results )
-		resultmanager.format( 'plot', *metrics )
+		resultmanager.format( *metrics, formatter=PlotFormatter )
 
 def _discover_tests( args ):
 	tests = []
@@ -164,6 +168,10 @@ def run( args ):
 		if args.store:
 			runner.store()
 			logger.info( "Stored results!" )
+		else:
+			# TODO
+			# ask the user if he wants to store the results
+			pass
 	finally:
 		# always
 		# recheckout the original branch
