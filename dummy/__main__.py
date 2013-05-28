@@ -105,6 +105,10 @@ show.add_argument(
 	action="store_true"
 )
 
+# `dummy quickstart`
+# quickstart = sub.add_parser( "quickstart", help="Quickly set up dummy config")
+# quickstart.set_defaults( func="quickstart" )
+
 if __name__ == "__main__":
 	args = parser.parse_args()
 
@@ -120,6 +124,7 @@ if __name__ == "__main__":
 		if not hasattr( args, 'func' ): parser.print_help()
 		elif args.func == 'run': run( args )
 		elif args.func == 'show': show( args )
+		# elif args.func == 'quickstart': quickstart( args )
 
 	except Exception as e:
 		# to trace or not to trace

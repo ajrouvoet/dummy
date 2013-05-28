@@ -152,7 +152,7 @@ class CCoverageCollector( Collector ):
 					continue
 
 				# if we got here, we got an unrecognized line
-				logger.debug( "Got unrecognizable line: %s" % line )
+				# logger.debug( "Got unrecognizable line: %s" % line )
 
 		result[ 'lines' ] = lines
 		result[ 'lines_hit' ] = lines_hit

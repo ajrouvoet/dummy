@@ -12,9 +12,13 @@ logger = logging.getLogger( __name__ )
 RESULT_FILENAME = "result.json"
 
 def storage_dir( commit, testname ):
+	""" Returns the paths to the storage directory.
+	"""
 	return os.path.join( config.TARGET_DIR, commit, testname )
 
 def storage_path( commit, testname ):
+	""" Returns path to the result file.
+	"""
 	return os.path.join( storage_dir( commit, testname ), RESULT_FILENAME )
 
 def clean_result( result ):

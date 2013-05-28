@@ -18,6 +18,8 @@ class Collector( object ):
 		pass
 
 	def collect( self, test ):
+		""" Run this collector on the given TestResult.
+		"""
 		raise NotImplementedError( "Not implemented" )
 
 	def parse_output( self, output ):
