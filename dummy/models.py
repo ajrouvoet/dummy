@@ -191,8 +191,9 @@ class Script( Collector ):
 		return self._path
 
 	def collect( self, test ):
-		# run the collector script
-		output = subprocess([ self.path, test.name ], test=test )
+		# run the collector script with working directory the test folder.
+		abspath = os.path.abspath( test.path ).encode( 'string-escape' )
+		output = subprocess([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
 
 		# parse the output
 		return self.parse_output( output )
