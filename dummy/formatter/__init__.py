@@ -112,7 +112,6 @@ class PlotFormatter( Formatter ):
 		xlabels = [ t.test.name for t in self.testresults ]
 
 		pylab.title( 'Metric values per test (commit: %s)' % self.testresults[0].commit, fontsize=22 )
-		pylab.legend()
 		pylab.xticks( rotation=20 )
 		pylab.grid( True, markevery='integer' )
 		pylab.xlabel( 'tests', fontsize=16 )
@@ -124,6 +123,7 @@ class PlotFormatter( Formatter ):
 			self.format_metric( metric )
 
 		# and show it
+		pylab.legend()
 		pylab.show()
 
 	def format_metric( self, metric ):
@@ -136,9 +136,10 @@ class PlotFormatter( Formatter ):
 			plot = pylab.plot( x, y )
 			pylab.setp( plot,
 				label=metric,
-				linewidth=2.0,
+				linestyle='dashed',
+				linewidth=1.0,
 				marker=".",
-				markersize=8.0,
+				markersize=12.0,
 				aa=True
 			)
 		except TypeError as e:
