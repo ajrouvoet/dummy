@@ -127,9 +127,7 @@ class Runner:
 		resultmanager = ResultManager( self.results )
 		resultmanager.format( *metrics, formatter=PlotFormatter )
 
-def _discover_tests( args ):
-	tests = []
-
+def _discover_tests( args, runner ):
 	# try to find the suites and append the testnames
 	# of the suite
 	for name in args.suite:
@@ -140,7 +138,7 @@ def _discover_tests( args ):
 			for descr in suite:
 				for fname in Test.glob( descr ):
 					logger.debug( "Adding test `%s` to tests." % fname )
-					tests.append( fname )
+					runner.add_test( Test( fname ))
 		except KeyError:
 			logger.error( "We looked, but a test suite with name `%s` was not found." % name )
 
@@ -148,22 +146,17 @@ def _discover_tests( args ):
 	# just queue the named tests
 	for names in [ Test.glob( name ) for name in args.tests ]:
 		for name in names:
-			tests.append( name )
+			runner.add_test( Test( fname ))
 
-	# remove doubles
-	tests = list( set( tests ))
-
-	return tests
+	return runner
 
 # subprogram run
 def run( args ):
 	runner = Runner()
 
 	# discover the tests we need to run and add them to the runner
-	tests = _discover_tests( args )
-	assert len( tests ) != 0, "No tests to run."
-	for test in tests:
-		runner.add_test( Test( test ))
+	_discover_tests( args, runner )
+	assert len( runner.queue ) != 0, "No tests to run."
 
 	try:
 		# if a commit is given, we need to checkout out the commit
@@ -218,8 +211,10 @@ def show( args ):
 		commit = args.commit
 
 	# discover the tests we need to run and add them to the runner
-	for name in _discover_tests( args ):
-		runner.add_result( JsonStorageProvider.load( commit, name ))
+	_discover_tests( args, runner )
+
+	for test in runner.queue:
+		runner.add_result( JsonStorageProvider.load( commit, test ))
 
 	if args.plot:
 		f = runner.plot

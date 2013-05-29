@@ -15,7 +15,7 @@ class TestResult:
 	"""
 
 	@classmethod
-	def unserialize( cls, data ):
+	def unserialize( cls, test, data ):
 		""" Unserializes a dictionary to a TestResult.
 			This only works well if dict is formatted according to the serialize() method.
 
@@ -25,9 +25,6 @@ class TestResult:
 
 		# Assume that name, started and completed are in dict.
 		try:
-			# TODO every result gets a seperate test instance...
-			# possibly describing the same Test (maybe not worth fixing)
-			test = Test( data[ 'name' ] )
 			result = cls(
 				test,
 				start=dateutil.parser.parse( data[ 'started' ]),

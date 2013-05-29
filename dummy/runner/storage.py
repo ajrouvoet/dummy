@@ -49,7 +49,7 @@ class JsonStorageProvider( StorageProvider ):
 		"""
 		commit = git.describe( commit )
 		fpath = os.path.join(
-			settings.STORAGE_DIR( self.result.test, commit=self.result.commit ),
+			settings.STORAGE_DIR( test, commit=commit ),
 			'result.json'
 		)
 
@@ -57,7 +57,7 @@ class JsonStorageProvider( StorageProvider ):
 			with open( fpath ) as results:
 				data = json.load( results )
 
-				result = TestResult.unserialize( data )
+				result = TestResult.unserialize( test, data )
 				result.test = test
 		except IOError as e:
 			# if the file did not exist, advice the user to run the test first
