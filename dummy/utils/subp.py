@@ -3,26 +3,10 @@ import sys
 import logging
 import subprocess as subp
 
-import dummy
-from dummy import config
+from dummy.config import settings
+from dummy.utils import git
 
 logger = logging.getLogger( __name__ )
-
-def create_dir( fpath ):
-	""" create the dirname of fpath if it does not exist
-
-		raises:
-			OSError on failure to create the directory and it does not exist
-	"""
-	path = os.path.dirname( fpath )
-
-	try:
-		os.makedirs( path )
-	except OSError as e:
-		if os.path.isdir( path ):
-			pass
-		else:
-			raise e
 
 def plugin_environ( test=None ):
 	""" extend a copy of os.environ with some testing environ vars.
@@ -38,12 +22,16 @@ def plugin_environ( test=None ):
 	"""
 	env = os.environ.copy()
 
-	for name in config.ENV:
-		env[ name ] = getattr( config, name )
+	for name in settings.ENV:
+		env[ name ] = getattr( settings, name )
 
 	if test is not None:
 		env[ 'TEST_NAME' ] = test.name
 		env[ 'TEST_LOG' ] = test.log_path()
+		env[ 'RESULTS_DIR' ] = os.path.join(
+			settings.TEMP_DIR,
+			settings.STORAGE_DIR( test, commit=git.describe() )
+		)
 
 	return env
 
@@ -81,4 +69,4 @@ def subprocess( args, test=None, **kwargs ):
 
 		raise OSError( "Failed to execute `%s`. OS said: %s" % ( proc, str( e )))
 
-	return process.communicate()[0].decode( dummy.INPUT_ENCODING )
+	return process.communicate()[0].decode( settings.INPUT_ENCODING )

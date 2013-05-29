@@ -37,9 +37,10 @@ class Statistic( object ):
 		try:
 			result = self.engine.run( results )
 		except Exception as e:
-			raise Exception( "The statistics engine	`%s` did not exit succesfully: %s" %\
+			logger.error( "The statistics engine `%s` did not exit succesfully: %s" %\
 				( self.name, str( e ))
 			)
+			raise
 
 		return result
 
@@ -50,7 +51,10 @@ class Engine( object ):
 
 	def run( self, results ):
 		for result in results:
-			self.process( result.get_metric( self.metric ))
+			if self.metric is not None:
+				self.process( result.get_metric( self.metric ))
+			else:
+				self.process( result )
 
 		return self.get_result()
 

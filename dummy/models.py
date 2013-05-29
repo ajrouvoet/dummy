@@ -4,8 +4,8 @@ import logging
 import dateutil.parser
 from datetime import datetime
 
-from dummy import config, git
-from dummy.utils import subprocess, create_dir, plugin_environ
+from dummy.config import config, settings
+from dummy.utils import io, git, subp
 from dummy.collector import Collector
 
 logger = logging.getLogger( __name__ )
@@ -55,6 +55,9 @@ class TestResult:
 		# additional test result files by name
 		self.files = {}
 
+	def storage_dir( self ):
+		return settings.STORAGE_DIR( self.test, self.commit )
+
 	def log( self, logdata ):
 		""" log the logdata to the results log file
 		"""
@@ -63,7 +66,7 @@ class TestResult:
 
 		# write the test output temporarily to a file
 		# for the collectors to use
-		create_dir( path )
+		io.create_dir( path )
 		with open( path, 'w' ) as fh:
 			fh.write( logdata )
 
@@ -139,7 +142,7 @@ class Test:
 		"""
 		# cache the environment
 		if self.env_cache is None:
-			self.env_cache = plugin_environ( test=self )
+			self.env_cache = subp.plugin_environ( test=self )
 
 		return self.env_cache
 
@@ -154,7 +157,7 @@ class Test:
 		"""
 		# run the actual test
 		start = datetime.now()
-		output = subprocess([ config.TEST_RUNNER, self.path ], test=self )
+		output = subp.subprocess([ config.TEST_RUNNER, self.path ], test=self )
 		stop = datetime.now()
 
 		# create a result instance
@@ -193,7 +196,7 @@ class Script( Collector ):
 	def collect( self, test ):
 		# run the collector script with working directory the test folder.
 		abspath = os.path.abspath( test.path ).encode( 'string-escape' )
-		output = subprocess([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
+		output = subp.subprocess([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
 
 		# parse the output
 		return self.parse_output( output )

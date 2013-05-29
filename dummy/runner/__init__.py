@@ -1,7 +1,8 @@
-from dummy import config, git
+from dummy.utils import git, io
+from dummy.config import config
 from dummy.models import Test, Metric
 from dummy.statistics import Statistic
-from dummy.runner import storage
+from dummy.runner.storage import JsonStorageProvider
 from dummy.formatter import ResultManager
 
 import os
@@ -21,6 +22,9 @@ class Runner:
 		self.results = [] # list of TestResult instances obtained
 		self.statistics = {} # list of statistics to collect
 		self.gathered_stats = {} # list of gathered statistics
+
+		# clean the runtime env
+		self.clean()
 
 		# load the metric and statistic instances from the config
 		self.load_metrics()
@@ -50,6 +54,10 @@ class Runner:
 		if os.path.isdir( config.TEMP_DIR ):
 			shutil.rmtree( config.TEMP_DIR )
 
+		# make the tmp directory for use
+		io.create_dir( os.path.join( config.TEMP_DIR, "bla" ))
+		logger.debug( "Cleaned `%s`" % config.TEMP_DIR )
+
 	def pre_test_hook( self, test ):
 		for name, metric in self.metrics.items():
 			metric.pre_test_hook( test )
@@ -73,14 +81,18 @@ class Runner:
 		# default stats to all configured stats
 		if stats is None: stats = self.statistics
 
+		logger.info( "Gathering statistics:" )
 		for s in stats.values():
 			self.gathered_stats[ s.name ] = s.gather( self.results )
-			logger.info( "Gathered statistic `%s`: %s" % ( s.name, self.gathered_stats[ s.name ]))
+			value = str( self.gathered_stats[ s.name ] ).strip()
+			logger.info( "\t%s: %s" % (
+				s.name,
+				"%s ..." % value[:40] if len( value ) > 40 else value
+			))
 
 	def run( self ):
 		""" run the tests in the queue
 		"""
-		self.clean()
 		logger.info( 80*"-" )
 
 		while len( self.queue ) != 0:
@@ -90,7 +102,7 @@ class Runner:
 
 	def store( self ):
 		for result in self.results:
-			storage.store_result( result )
+			JsonStorageProvider( result ).store()
 
 	def output( self, *metrics ):
 		from dummy.formatter import LogFormatter
@@ -196,7 +208,7 @@ def show( args ):
 
 	# discover the tests we need to run and add them to the runner
 	for name in _discover_tests( args ):
-		runner.add_result( storage.load_result( commit, name ))
+		runner.add_result( JsonStorageProvider.load( commit, name ))
 
 	if args.plot:
 		f = runner.plot

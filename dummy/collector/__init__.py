@@ -1,4 +1,8 @@
+import os
 import json
+
+from dummy.config import settings
+from dummy.utils import git
 
 class Collector( object ):
 	""" Abstract base class Collector
@@ -21,6 +25,11 @@ class Collector( object ):
 		""" Run this collector on the given TestResult.
 		"""
 		raise NotImplementedError( "Not implemented" )
+
+	def store_result_file( self, test, name, content ):
+		path = os.path.join( test.env()[ 'RESULTS_DIR' ], name )
+		with open( path, 'w' ) as fh:
+			fh.write( content )
 
 	def parse_output( self, output ):
 		""" Parse the output of the collection script if necessary

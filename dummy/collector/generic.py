@@ -1,13 +1,14 @@
 import os
 import sys
-import fnmatch
 import re
 import logging
 import json
-from subprocess import Popen, PIPE
+import shutil
+from subprocess import check_call, Popen, PIPE, CalledProcessError
 
-import dummy
 from dummy.collector import Collector
+from dummy.config import settings
+from dummy.utils import lcov, io, git
 
 # don't show debug message per default
 logger = logging.getLogger( __name__ )
@@ -19,7 +20,7 @@ class PassFailCollector( Collector ):
 	def __init__( self ):
 		super( PassFailCollector, self ).__init__( type="value" )
 
-	def collect( self, test, **kwargs ):
+	def collect( self, test ):
 		# mimic script
 		result = 'FAIL'
 		with open( test.log_path(), 'r' ) as log:
@@ -30,166 +31,66 @@ class PassFailCollector( Collector ):
 		return self.parse_output( result )
 
 class CCoverageCollector( Collector ):
-	rheader = re.compile( r'^TN:(?P<name>.*)$' )
-	rfooter = re.compile( r'^end_of_record$' )
-	rpath = re.compile( r'^SF:(?P<path>.*)$' )
-	rfunction_hits = re.compile( r'^FNDA:(?P<hits>\d+),(?P<name>.*)$' )
-	rfunctions_found= re.compile( r'^FNF:(?P<found>\d+)$' )
-	rfunctions_hit = re.compile( r'^FNH:(?P<hits>\d+)$' )
-	rlines_found = re.compile( r'^LF:(?P<found>\d+)$' )
-	rlines_hit = re.compile( r'^LH:(?P<hits>\d+)$' )
 
-	def parse( self, output ):
-		""" Parses lcov output into a dictionary
-
-			returns:
-				{dict}: coverage results of the form:
-							{
-								'files': {
-									'<filename>': {
-										'lines': <int>,
-										'lines_hit': <int>,
-										'functions': <int>,
-										'functions_hit': <int>,
-										'branches': <int>,
-										'branches_hit': <int>,
-										'functions': {
-											'<name'>: <times_run>
-											'<name'>: <times_run>
-											...
-										}
-									}
-								},
-								'lines': <int>,
-								'lines_hit': <int>,
-								'functions': <int>,
-								'functions_hit': <int>
-							}
-		"""
-		result = {
-			'files': {}
-		}
-		fresult = None
-		fpath = None
-
-		# totals over the test
-		lines = 0
-		lines_hit = 0
-		functions = 0
-		functions_hit = 0
-
-		for line in output.splitlines():
-			# first make sure we are in a file section
-			if fresult is None and CCoverageCollector.rheader.match( line ):
-				fresult = {
-					'function_coverage': {}
-				}
-
-				continue
-			else:
-				# single function hits
-				m = CCoverageCollector.rfunction_hits.match( line )
-				if m is not None:
-					fresult[ 'function_coverage' ][ m.group( 'name' )] = int( m.group( 'hits' ))
-					continue
-
-				# functions hit
-				m = CCoverageCollector.rfunctions_hit.match( line )
-				if m is not None:
-					hit = int( m.group( 'hits' ))
-					fresult[ 'functions_hit' ] = hit
-
-					# also add to the total
-					functions_hit += hit
-
-					continue
-
-				# functions found
-				m = CCoverageCollector.rfunctions_found.match( line )
-				if m is not None:
-					found = int( m.group( 'found' ))
-					fresult[ 'functions' ] = found
-
-					# also add to the total
-					functions += found
-
-					continue
-
-				# lines hit
-				m = CCoverageCollector.rlines_hit.match( line )
-				if m is not None:
-					hit = int( m.group( 'hits' ))
-					fresult[ 'lines_hit' ] = hit
-
-					# total
-					lines_hit += hit
-
-					continue
-
-				# lines found
-				m = CCoverageCollector.rlines_found.match( line )
-				if m is not None:
-					found = int( m.group( 'found' ))
-					fresult[ 'lines' ] = found
-
-					# total
-					lines += found
-
-					continue
-
-				# file path
-				m = CCoverageCollector.rpath.match( line )
-				if m is not None:
-					fpath = m.group( 'path' )
-					continue
-
-				# make sure we close the file section properly
-				m = CCoverageCollector.rfooter.match( line )
-				if m is not None:
-					assert fpath is not None, "lcov file section had no SF entry (no file path)"
-					result[ 'files' ][ fpath ] = fresult
-					fresult = None
-					continue
-
-				# if we got here, we got an unrecognized line
-				# logger.debug( "Got unrecognizable line: %s" % line )
-
-		result[ 'lines' ] = lines
-		result[ 'lines_hit' ] = lines_hit
-		result[ 'functions' ] = functions
-		result[ 'functions_hit' ] = functions_hit
-
-		return result
+	BASELINE = os.path.join( settings.TEMP_DIR, "coverage.baseline.info" )
+	FILENAME = "coverage.info"
 
 	def pre_test_hook( self, test ):
-		# zero the coverage counters
-		gcov = Popen([ 'lcov', '-z', '-d', test.env().get( 'SRC_DIR' ) ], stdout=PIPE, stderr=PIPE )
-		ret = gcov.wait()
-		( out, err ) = gcov.communicate()
+		# zero the counters
+		try:
+			check_call([
+				'lcov', '-z',
+				'-d', test.env().get( 'SRC_DIR' )
+			], stdout=PIPE, stderr=PIPE )
+		except CalledProcessError as e:
+			logger.error( "Could not zero the coverage counters" )
+			raise
 
-		# make sure this was succesfull
-		# or else print the error
-		assert ret == 0, "Zeroing the coverage counters in the SRC_DIR failed: %s " % err
+		# create the lcov log dir
+		# and the baseline file
+		io.create_dir( CCoverageCollector.BASELINE )
+		lcov.baseline( CCoverageCollector.BASELINE )
 
 	def collect( self, test ):
-		result = {}
-
 		# collect the lcov data from the src directory
 		src = test.env().get( 'SRC_DIR' )
 
-		# run lcov and get the output
-		lcov = Popen([ 'lcov', '-c', '-b', src, '-d', src ], stdout=PIPE, stderr=PIPE )
-		out, err = lcov.communicate()
-		out = out.decode( dummy.INPUT_ENCODING )
+		try:
+			# run lcov to get the test coverage file
+			outfile = os.path.join( test.env().get( 'RESULTS_DIR' ), CCoverageCollector.FILENAME )
+			io.create_dir( outfile )
+			proc = Popen([ 'lcov', '-c',
+				'-d', src,
+				'-b', src,
+				'-o', outfile
+			], stdout=PIPE, stderr=PIPE )
 
-		# write it to a info file for merging later
+			# let's get the output
+			out, err = proc.communicate()
+			assert proc.returncode == 0
 
-		# if no gcda files were found lcov fails
-		# but this can be a valid data
-		# so report this to the user as a warning
-		if lcov.returncode == 1:
-			logger.warn( "lcov failed for test `%s`:\n\n%s" % ( test.name, err.decode(
-				dummy.INPUT_ENCODING
-			)))
+			# combine the data with the baseline
+			proc = Popen([ 'lcov',
+				'-a', CCoverageCollector.BASELINE,
+				'-a', outfile,
+				'-o', outfile
+			], stdout=PIPE, stderr=PIPE )
 
-		return self.parse( out )
+			out, err = proc.communicate()
+			assert proc.returncode == 0
+		except AssertionError:
+			logger.warn(
+				"lcov collect failed for test `%s`: %s" % (
+					test.name, err.decode( settings.INPUT_ENCODING ).strip()
+				)
+			)
+
+			# the baseline is now the resulting coverage
+			shutil.copyfile( CCoverageCollector.BASELINE, outfile )
+
+		# if lcov ran correctly
+		# read the output file
+		with open( outfile ) as fh:
+			out = fh.read()
+
+		return lcov.parse( out )

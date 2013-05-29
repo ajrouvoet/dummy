@@ -1,5 +1,12 @@
+import os
+import glob
 import logging
+from subprocess import check_call, PIPE, CalledProcessError
+
 from dummy.statistics import Engine
+from dummy.config import settings
+from dummy.collector.generic import CCoverageCollector
+from dummy.utils import lcov
 
 logger = logging.getLogger( __name__ )
 
@@ -24,37 +31,38 @@ class CountEngine( Engine ):
 
 		self.bars[ 'total' ] += 1
 
-class CoverageOverviewEngine( Engine ):
+class CCoverageOverviewEngine( Engine ):
 
-	def __init__( self, metric="coverage.files" ):
-		super( CoverageOverviewEngine, self ).__init__( metric )
+	def __init__( self ):
+		super( CCoverageOverviewEngine, self ).__init__( metric=None )
 
-		self.lines = 0
-		self.lines_hit = 0
-		self.functions = 0
-		self.functions_hit = 0
+		self.path = os.path.join( settings.TEMP_DIR, "coverage_collect.info" )
+
+	def run( self, *args, **kwargs ):
+		# create the baseline
+		logger.debug( "Creating coverage baseline" )
+		lcov.baseline( self.path )
+
+		return super( CCoverageOverviewEngine, self ).run( *args, **kwargs )
 
 	def get_result( self ):
-		return {
-			'lines_percentage': round(
-					float( self.lines_hit ) / self.lines * 100
-				) if self.lines > 0 else 0,
-			'function_percentage': round(
-					float( self.functions_hit ) / self.functions * 100
-				) if self.functions > 0 else 0
-		}
+		with open( self.path ) as fh:
+			# parse the accumulated data
+			results = lcov.parse( fh.read() )
 
-	def process( self, data ):
-		""" Process the coverage data
+		return results
 
-			raises:
-				KeyError: When the coverage data is wrongly formatted.
-		"""
-		for value in data.itervalues():
-			try:
-				self.functions += value[ 'functions' ]
-				self.functions_hit += value[ 'functions_hit' ]
-				self.lines += value[ 'lines' ]
-				self.lines_hit += value[ 'lines_hit' ]
-			except KeyError as e:
-				raise KeyError( "Wrongly formatted data for CoverageOverviewEngine: %s" % str( e ))
+	def process( self, result ):
+		path = os.path.join( result.test.env()[ 'RESULTS_DIR' ], CCoverageCollector.FILENAME )
+
+		# combine the data with the accumulated set
+		try:
+			proc = check_call([ 'lcov',
+				'-a', self.path,
+				'-a', path,
+				'-o', self.path
+			], stdout=PIPE, stderr=PIPE )
+		except CalledProcessError as e:
+			logger.error( "lcov aggregation failed for test `%s`" % result.test.name )
+
+			raise

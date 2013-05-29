@@ -3,93 +3,101 @@ import os
 import shutil
 import logging
 
-from dummy import config, git
-from dummy.utils import create_dir
+from dummy.config import settings
+from dummy.utils import io, git
 from dummy.models import TestResult
 
 logger = logging.getLogger( __name__ )
 
-RESULT_FILENAME = "result.json"
+class StorageProvider:
 
-def storage_dir( commit, testname ):
-	""" Returns the paths to the storage directory.
-	"""
-	return os.path.join( config.TARGET_DIR, commit, testname )
+	def __init__( self, result ):
+		self.result = result
 
-def storage_path( commit, testname ):
-	""" Returns path to the result file.
-	"""
-	return os.path.join( storage_dir( commit, testname ), RESULT_FILENAME )
+	def clean( self ):
+		# clean the existing result dir and create a new one.
+		result_dir = settings.STORAGE_DIR( self.result.test, commit=self.result.commit )
+		try:
+			shutil.rmtree( result_dir )
+		except OSError as e:
+			if not os.path.isdir( result_dir ):
+				pass
+			else:
+				raise e
 
-def clean_result( result ):
-	""" Clean the storage dir for testresult `result`
+		logger.debug( "Cleaned directory: `%s`" % result_dir )
 
-		raises:
-			OSError: When failed to remove storage dir.
-	"""
-	# clean the existing result dir and create a new one.
-	result_dir = storage_dir( result.commit, result.test.name )
-	try:
-		shutil.rmtree( result_dir )
-	except OSError as e:
-		if not os.path.isdir( result_dir ):
-			pass
-		else:
-			raise e
+	def path( self ):
+		""" Returns path to the result file.
+		"""
+		raise NotImplementedError()
 
-	logger.debug( "Cleaned directory: `%s`" % result_dir )
+	def store( self ):
+		raise NotImplementedError()
 
-def store_result( result ):
-	""" Store the completed test results to the results directory.
+class JsonStorageProvider( StorageProvider ):
 
-		raises:
-			IOError: Unable to write results to disk.
-	"""
-	# Clean already existing results for this test.
-	clean_result( result )
+	@staticmethod
+	def load( commit, test ):
+		""" Load test result
 
-	# create the storage dir
-	fpath = storage_path( result.commit, result.test.name )
-	create_dir( fpath )
+			raises:
+				IOError: When the results files is removed while reading.
 
-	# write the results to file
-	try:
-		with open( fpath, 'w' ) as fh:
-			# encoding defaults to utf8; done
-			json.dump( result.serialize(), fh, sort_keys=True, indent=4 )
-	except IOError as e:
-		# do not write partial results
-		clean_result( result )
+			returns:
+				TestResult instance
+		"""
+		commit = git.describe( commit )
+		fpath = os.path.join(
+			settings.STORAGE_DIR( self.result.test, commit=self.result.commit ),
+			'result.json'
+		)
 
-		raise IOError( "Could not write test results to disk: %s" % str( e ))
+		try:
+			with open( fpath ) as results:
+				data = json.load( results )
 
-	logger.debug( "Stored results in `%s`" % fpath )
+				result = TestResult.unserialize( data )
+				result.test = test
+		except IOError as e:
+			# if the file did not exist, advice the user to run the test first
+			if not os.path.exists( fpath ):
+				raise Exception( "No test results exists yet for test `%s`" % test.name )
+			else:
+				raise
 
-def load_result( committish, testname ):
-	""" Load test result
+		logger.debug( "Loaded testresult: %s (commit: %s)" % ( str( result ), commit ))
 
-		raises:
-			IOError: When the results files is removed while reading.
+		return result
 
-		returns:
-			TestResult instance
-	"""
-	logger.debug( committish )
-	commit = git.describe( committish )
-	fpath = storage_path( commit, testname )
+	def path( self ):
+		return os.path.join(
+			settings.STORAGE_DIR( self.result.test, commit=self.result.commit ),
+			'result.json'
+		)
 
-	try:
-		with open( fpath ) as results:
-			data = json.load( results )
+	def store( self ):
+		""" Store the completed test results to the results directory.
 
-			result = TestResult.unserialize( data )
-	except IOError as e:
-		# if the file did not exist, advice the user to run the test first
-		if not os.path.exists( fpath ):
-			raise Exception( "No test results exists yet for test `%s`" % testname )
-		else:
-			raise
+			raises:
+				IOError: Unable to write results to disk.
+		"""
+		# Clean already existing results for this test.
+		self.clean()
 
-	logger.debug( "Loaded testresult: %s (commit: %s)" % ( str( result ), commit ))
+		# create the storage dir
+		fpath = self.path()
+		io.create_dir( fpath )
 
-	return result
+		# write the results to file
+		try:
+			with open( fpath, 'w' ) as fh:
+				# encoding defaults to utf8; done
+				json.dump( self.result.serialize(), fh, sort_keys=True, indent=4 )
+		except IOError as e:
+			# do not write partial results
+			self.clean()
+
+			raise IOError( "Could not write test results to disk: %s" % str( e ))
+
+		logger.debug( "Stored results in `%s`" % fpath )
