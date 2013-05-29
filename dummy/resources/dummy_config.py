@@ -1,6 +1,8 @@
 """ The configuration file for the test framework
 	All CAPITALIZED names are settings
 """
+import os
+
 from dummy.statistics.generic import CountEngine
 from dummy.collectors.generic import CCoverageCollector, PassFailCollector
 
@@ -40,7 +42,7 @@ RELEASES = {
 }
 
 # this is test runner executable; it takes one argument: the path to the test
-TEST_RUNNER = 'bin/runner.sh'
+TEST_RUNNER = 'bin/run.sh'
 
 # here you configure the metrics you would like to collect
 # from the test results, how to collect them and were to store them

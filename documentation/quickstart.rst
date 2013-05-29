@@ -63,6 +63,7 @@ Next add the following to the list of configured Statistics, ``STATISTICS``::
 	}
 
 The configuration file should look like :download:`this example dummy_config.py <code/example_dummy_config.py>`.
+Or the default configuration file :mod:`dummy.config.settings`.
 
 Running Dummy
 -----------------
