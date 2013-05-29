@@ -1,5 +1,5 @@
 from dummy.utils import git, io
-from dummy.config import config
+from dummy.config import config, settings
 from dummy.models import Test, Metric
 from dummy.statistics import Statistic
 from dummy.runner.storage import JsonStorageProvider
@@ -103,6 +103,17 @@ class Runner:
 	def store( self ):
 		for result in self.results:
 			JsonStorageProvider( result ).store()
+
+		# copy the files from the temp results to the results
+		for path, dirs, files in os.walk( os.path.join( settings.TEMP_DIR, settings.TARGET_DIR )):
+			for f in files:
+				abspath = os.path.join( path, f )
+				relpath = os.path.relpath( abspath, settings.TEMP_DIR )
+
+				logger.debug( "Copying result file `%s`", relpath )
+
+				io.create_dir( relpath )
+				shutil.copyfile( abspath, relpath )
 
 	def output( self, *metrics ):
 		from dummy.formatter import LogFormatter
