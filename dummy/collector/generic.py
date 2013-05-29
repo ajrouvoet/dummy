@@ -8,7 +8,7 @@ from subprocess import check_call, Popen, PIPE, CalledProcessError
 
 from dummy.collector import Collector
 from dummy.config import settings
-from dummy.utils import lcov, io, git
+from dummy.utils import lcov, io, git, kv_colon
 
 # don't show debug message per default
 logger = logging.getLogger( __name__ )
@@ -94,3 +94,24 @@ class CCoverageCollector( Collector ):
 			out = fh.read()
 
 		return lcov.parse( out )
+
+class RulestatCollector( Collector ):
+
+	FILENAME = "rulestat_out.txt"
+
+	def pre_test_hook( self, test ):
+		# zero the counters
+		# and the baseline file
+		srcdir = test.path
+		results_file = os.path.join( srcdir, self.FILENAME)
+
+
+	def collect( self, test ):
+		# collect the lcov data from the src directory
+		srcdir = test.path
+		results_file = os.path.join( srcdir, self.FILENAME)
+
+		with open( results_file ) as fh:
+			out = fh.read()
+
+		return kv_colon.parse( out )

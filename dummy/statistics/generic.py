@@ -31,6 +31,24 @@ class CountEngine( Engine ):
 
 		self.bars[ 'total' ] += 1
 
+class KeyValueCountEngine( Engine ):
+
+	def __init__( self, metric ):
+		assert len( metric ) > 0, "KeyValueCountEngine requires a metric name"
+		super( CountEngine, self ).__init__( metric )
+
+		self.bars = {
+			'total': 0
+		}
+
+	def get_result( self ):
+		return self.bars
+
+	def process( self, data ):
+		for key, value in data:
+			self.bars[ key ] = self.bars.get( key, 0 ) + value
+			self.bars[ 'total' ] += value
+
 class CCoverageOverviewEngine( Engine ):
 
 	def __init__( self ):
@@ -66,3 +84,4 @@ class CCoverageOverviewEngine( Engine ):
 			logger.error( "lcov aggregation failed for test `%s`" % result.test.name )
 
 			raise
+
