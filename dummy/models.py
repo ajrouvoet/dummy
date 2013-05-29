@@ -193,7 +193,11 @@ class Script( Collector ):
 	def collect( self, test ):
 		# run the collector script with working directory the test folder.
 		abspath = os.path.abspath( test.path ).encode( 'string-escape' )
-		output = subp.subprocess([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
+		try:
+			output = subp.subprocess([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
+		except CalledProcessError as e:
+			logger.error( "Script `%s` did not exit succesfully for test `%s`" % ( self.path, test.name ))
+			output = None
 
 		# parse the output
 		return self.parse_output( output )

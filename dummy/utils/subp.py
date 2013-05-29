@@ -73,5 +73,6 @@ def subprocess( args, test=None, **kwargs ):
 
 		raise OSError( "Failed to execute `%s`. OS said: %s" % ( proc, str( e )))
 	except CalledProcessError as e:
+		logger.debug( "Process output: `%s`" % stdout.decode( settings.INPUT_ENCODING ))
 		raise CalledProcessError( "The process exited with a non-zero exit code." )
 
