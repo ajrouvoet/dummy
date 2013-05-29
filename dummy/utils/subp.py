@@ -50,7 +50,7 @@ def subprocess( args, test=None, **kwargs ):
 			stdout data
 
 		:raises:
-			CalledProcessError: When the process exits with a non-zero exit code.
+			IOError: When the process exits with a non-zero exit code.
 	"""
 	# merge the environments
 	env = plugin_environ( test=test )
@@ -72,7 +72,7 @@ def subprocess( args, test=None, **kwargs ):
 			proc = args[0]
 
 		raise OSError( "Failed to execute `%s`. OS said: %s" % ( proc, str( e )))
-	except CalledProcessError as e:
-		logger.debug( "Process output: `%s`" % stdout.decode( settings.INPUT_ENCODING ))
-		raise CalledProcessError( "The process exited with a non-zero exit code." )
+	except subp.CalledProcessError as e:
+		logger.debug( "Error output: `%s`" % e)
+		raise IOError( "The process `%s` exited with a non-zero exit code." % args )
 

@@ -195,7 +195,7 @@ class Script( Collector ):
 		abspath = os.path.abspath( test.path ).encode( 'string-escape' )
 		try:
 			output = subp.subprocess([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
-		except CalledProcessError as e:
+		except IOError as e:
 			logger.error( "Script `%s` did not exit succesfully for test `%s`" % ( self.path, test.name ))
 			output = None
 
