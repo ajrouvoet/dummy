@@ -41,6 +41,42 @@ def subprocess( args, test=None, **kwargs ):
 
 		The environment is merged with the `plugin_environ()` env.
 
+		kwargs:
+			see subprocess.Popen for kwargs (except stderr and stdout)
+
+			test: test instance; used to set a proper env.
+
+		return:
+			stdout data
+	"""
+	# merge the environments
+	env = plugin_environ( test=test )
+	env.update( kwargs.get( 'env', {} ) )
+
+	# setup the popen kwargs
+	kwargs[ 'env' ] = env
+	kwargs[ 'stdout' ] = subp.PIPE
+	kwargs[ 'stderr' ] = subp.STDOUT
+
+	# run the process
+	try:
+		process = subp.Popen( args, **kwargs )
+	except OSError as e:
+		if type( args[0] ) == 'list':
+			proc = " ".join( args[0] )
+		else:
+			proc = args[0]
+
+		raise OSError( "Failed to execute `%s`. OS said: %s" % ( proc, str( e )))
+
+	return process.communicate()[0].decode( settings.INPUT_ENCODING )
+
+def check_output( args, test=None, **kwargs ):
+	""" call a subprocess and blocks until it ends, returning the decode data of stdout.
+		stderr is redirected to stdout as well.
+
+		The environment is merged with the `plugin_environ()` env.
+
 		:param kwargs:
 			see subprocess.Popen for kwargs (except stderr and stdout)
 
@@ -75,4 +111,3 @@ def subprocess( args, test=None, **kwargs ):
 	except subp.CalledProcessError as e:
 		logger.debug( "Error output: `%s`" % e)
 		raise IOError( "The process `%s` exited with a non-zero exit code." % args )
-
