@@ -3,6 +3,10 @@ import logging
 logger = logging.getLogger( __name__ )
 
 class Statistic( object ):
+	""" A :term:`statistic` collects aggregated information about multiple test results.
+
+		The statistic object uses a :class:`Engine` to collect the specified data.
+	"""
 
 	@classmethod
 	def parse( cls, name, conf ):
@@ -27,11 +31,10 @@ class Statistic( object ):
 		""" Collect the statistics results given a set of results
 			to consider
 
-			params:
-				results {list<TestResult>}: lists of result to calculate the statistic of
+			:param results: {list<TestResult>} lists of result to calculate the statistic of.
 
-			returns:
-				value {any}: calculated statistic
+			:returns: The calculated statistic.
+			:rtype: A value or dict object.
 		"""
 		result = None
 		try:
@@ -45,11 +48,17 @@ class Statistic( object ):
 		return result
 
 class Engine( object ):
+	""" An engine implements the requested statistic functionality.
+	"""
 
-	def __init__( self, metric="" ):
+	def __init__( self, metric=None ):
 		self.metric = metric
 
 	def run( self, results ):
+		""" Run the engine.
+
+			:returns: The collected statistic results.
+		"""
 		for result in results:
 			if self.metric is not None:
 				self.process( result.get_metric( self.metric ))

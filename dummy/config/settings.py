@@ -1,6 +1,7 @@
 """ The settings contain the specifics on how to run dummy on a project.
 	
-	All settings are not allowed to import any files from dummy.
+	.. warning::
+		All settings are not allowed to import any files from dummy.
 """
 import os
 import sys

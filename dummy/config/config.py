@@ -22,6 +22,10 @@ METRICS = {}
 
 	A metric collects information about a test result.
 	See the glossary entry :term:`metric` for a definition.
+
+	.. note::
+		You can create your own Metrics either by writing a script,
+		or by writing a python class and inheriting from :class:`dummy.collector.Collector`.
 """
 
 STATISTICS = {}
@@ -29,6 +33,9 @@ STATISTICS = {}
 
 	A statistic collects aggregated information about results from all tests.
 	See the glossary entry :term:`statistic` for a definition.
+
+	.. note::
+		You can create your own Statistics by writing a python class and inheriting from :class:`dummy.collector.Statistic`.
 """
 
 # import the project configuration

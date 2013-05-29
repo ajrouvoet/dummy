@@ -1,41 +1,61 @@
 Source Documentation
 ====================
 
-Example generated documentation.
+This page contains all source documentation.
 
-:mod:`dummy` -- Main Package
-----------------------------
+.. Modules ordered in alphabetical order.
+:mod:`dummy`
+------------
 
 .. automodule:: dummy
 	:members:
 
-:mod:`dummy.models` -- Models module
-------------------------------------
+:mod:`dummy.models`
+^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: dummy.models
 	:members:
 	:show-inheritance:
 
-:mod:`dummy.collector` -- Collector Package
--------------------------------------------
+:mod:`dummy.collector`
+----------------------
 
 .. automodule:: dummy.collector
 	:members:
 	:show-inheritance:
 
-:mod:`dummy.config` -- Dummy configuration
-------------------------------------------
+:mod:`dummy.config`
+-------------------
 
 .. automodule:: dummy.config
 
-:mod:`dummy.config.config` -- Config
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`dummy.config.config`
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: dummy.config.config
 	:members:
 
-:mod:`dummy.config.settings` -- Settings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`dummy.config.settings`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: dummy.config.settings
 	:members:
+
+:mod:`dummy.formatter`
+----------------------
+
+.. automodule:: dummy.formatter
+	:members:
+
+:mod:`dummy.runner`
+----------------------
+
+.. automodule:: dummy.runner
+	:members:
+
+:mod:`dummy.statistics`
+-----------------------
+
+.. automodule:: dummy.statistics
+	:members:
+	:show-inheritance:
