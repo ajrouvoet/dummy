@@ -4,6 +4,7 @@ Source Documentation
 This page contains all source documentation.
 
 .. Modules ordered in alphabetical order.
+
 :mod:`dummy`
 ------------
 
@@ -59,3 +60,9 @@ This page contains all source documentation.
 .. automodule:: dummy.statistics
 	:members:
 	:show-inheritance:
+
+:mod:`dummy.utils`
+----------------------
+
+.. automodule:: dummy.utils
+	:members:

@@ -4,7 +4,7 @@ import re
 
 from termcolor import colored
 
-__all__ = ( 'Formatter', 'LogFormatter', 'ResultsManager' )
+__all__ = ( 'Formatter', 'LogFormatter', 'ResultManager' )
 
 logger = logging.getLogger( __name__ )
 
@@ -40,6 +40,8 @@ logformatter = IndentFormatter()
 ch.setFormatter( logformatter )
 
 class Formatter( object ):
+	""" A Formatter outputs :class:`dummy.models.TestResult` in a certain format.
+	"""
 
 	def __init__( self, testresults ):
 		self.testresults = testresults
@@ -97,6 +99,8 @@ class LogFormatter( Formatter ):
 			printer.info( colored( "%s" % metric_name, 'white' ) + ": %s" %  metric )
 
 class ResultManager:
+	""" Manages test results and can output them with the specified method.
+	"""
 	def __init__( self, results ):
 		self.results = results
 
@@ -110,7 +114,7 @@ class ResultManager:
 
 			Supported methods: `log`, `plot`.
 
-			Raises: AssertionError when the method is not supported.
+			:raises AssertionError: When the method is not supported.
 		"""
 		# default the formatter
 		formatter = kwargs.get( 'formatter', LogFormatter )
