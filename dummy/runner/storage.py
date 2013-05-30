@@ -62,7 +62,7 @@ class JsonStorageProvider( StorageProvider ):
 		except IOError as e:
 			# if the file did not exist, advice the user to run the test first
 			if not os.path.exists( fpath ):
-				raise Exception( "No test results exists yet for test `%s`" % test.name )
+				raise ValueError( str( e ))
 			else:
 				raise
 

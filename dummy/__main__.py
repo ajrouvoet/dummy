@@ -127,8 +127,7 @@ if __name__ == "__main__":
 		# elif args.func == 'quickstart': quickstart( args )
 
 	except Exception as e:
+		logging.getLogger( 'dummy' ).critical( str( e ))
 		# to trace or not to trace
 		if args.debug:
 			raise
-		else:
-			logging.getLogger( 'dummy' ).error( str( e ))

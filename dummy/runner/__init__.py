@@ -214,8 +214,11 @@ def show( args ):
 	_discover_tests( args, runner )
 
 	for test in runner.queue:
-		runner.add_result( JsonStorageProvider.load( commit, test ))
-
+		try:
+			runner.add_result( JsonStorageProvider.load( commit, test ))
+		except ValueError as e:
+			logger.error( "No test results exists yet for test `%s`" % test.name )
+			logger.debug( "Exception output: `%s`" % e )
 	if args.plot:
 		f = runner.plot
 	else:
