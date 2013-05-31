@@ -39,6 +39,7 @@ defaults = {
 	'INPUT_ENCODING': 'utf8',
 	'ENV': {},
 	'TEST_RUNNER': 'bin/run.sh',
+	'DEFAULT_TARGET': 'default',
 	'TARGETS': {}
 }
 
@@ -60,7 +61,7 @@ class Config( object ):
 	def STORAGE_DIR( self, test, commit ):
 		""" Returns the paths to the storage directory of a test result
 		"""
-		return os.path.join( self.TARGET_DIR, commit, test.name )
+		return os.path.join( self.TARGET_DIR, commit, self.target, test.name )
 
 	def __getattr__( self, attr ):
 		if self.target != "default":

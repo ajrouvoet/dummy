@@ -6,7 +6,8 @@ from datetime import datetime
 
 from dummy import config
 from dummy.utils import io, git, subp
-from dummy.collector import Collector
+from dummy.runner.collectors import Collector
+from dummy.runner.collectors.generic import ScriptCollector
 
 logger = logging.getLogger( __name__ )
 
@@ -29,6 +30,7 @@ class TestResult:
 				test,
 				start=dateutil.parser.parse( data[ 'started' ]),
 				stop=dateutil.parser.parse( data[ 'completed' ]),
+				target=dateutil.parser.parse( data[ 'target' ]),
 				commit=data[ 'commit' ]
 			)
 
@@ -39,13 +41,14 @@ class TestResult:
 		except KeyError as e:
 			raise KeyError( "Unproper dictionary given to unserialize as TestResult: %s", str( e ))
 
-	def __init__( self, test, start, stop, commit=None ):
+	def __init__( self, test, start, stop, target, commit=None ):
 		assert start is not None
 		assert stop is not None
 
 		self.test = test
 		self.started = start
 		self.completed = stop
+		self.target = target
 		self.commit = commit or git.describe()
 		self.metrics = {}
 
@@ -96,6 +99,7 @@ class TestResult:
 		result[ 'name' ] = self.test.name
 		result[ 'started' ] = self.started.isoformat( " " )
 		result[ 'completed' ] = self.completed.isoformat( " " )
+		result[ 'target' ] = self.target
 		result[ 'metrics' ] = self.metrics.copy()
 		result[ 'commit' ] = self.commit
 
@@ -126,7 +130,6 @@ class Test:
 
 		self.name = name
 		self.path = os.path.join( config.TESTS_DIR, name )
-		self.env_cache = None
 
 		assert os.path.exists( self.path ), "Sorry, could not find the test `%s`" % name
 
@@ -137,13 +140,9 @@ class Test:
 		""" return:
 				{dict}: the test specific environment
 		"""
-		# cache the environment
-		if self.env_cache is None:
-			self.env_cache = subp.plugin_environ( test=self )
+		return subp.plugin_environ( test=self )
 
-		return self.env_cache
-
-	def run( self, metrics=[] ):
+	def run( self, target, metrics=[] ):
 		""" Run this Test.
 
 			raises:
@@ -158,7 +157,7 @@ class Test:
 		stop = datetime.now()
 
 		# create a result instance
-		result = TestResult( self, start, stop )
+		result = TestResult( self, start, stop, target )
 		result.log( output.encode( 'utf8' ))
 
 		for metric in metrics:
@@ -173,35 +172,6 @@ class Test:
 			))
 
 		return result
-
-class Script( Collector ):
-	""" A class for running collector scripts.
-	"""
-
-	def __init__( self, path, type='value' ):
-		super( Script, self ).__init__( type=type )
-
-		assert os.path.exists( path ), "Could not find the collector script: %s" % path
-		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
-
-		self._path = path
-
-	@property
-	def path( self ):
-		return self._path
-
-	def collect( self, test ):
-		# run the collector script with working directory the test folder.
-		abspath = os.path.abspath( test.path ).encode( 'string-escape' )
-		try:
-
-			output = subp.check_output([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
-		except IOError as e:
-			logger.error( "Script `%s` did not exit succesfully for test `%s`" % ( self.path, test.name ))
-			output = None
-
-		# parse the output
-		return self.parse_output( output )
 
 class Metric:
 
@@ -242,7 +212,7 @@ class Metric:
 				logger.error( "Could not instantiate the collector `%s`" % collname )
 				raise e
 		else:
-			coll = Script( coll, type=output_type )
+			coll = ScriptCollector( script, type=output_type )
 
 		return cls( name, collector=coll )
 

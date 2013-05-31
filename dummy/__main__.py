@@ -67,7 +67,14 @@ runner.add_argument(
 	'-t',
 	'--target',
 	help="Run a specific target",
-	action="store"
+	action="append",
+	default=[]
+)
+runner.add_argument(
+	'-T',
+	'--alltargets',
+	help="Run all targets",
+	action="store_true",
 )
 runner.add_argument(
 	'-c',
@@ -101,7 +108,14 @@ show.add_argument(
 	'-t',
 	'--target',
 	help="Show result of a specific target",
-	action="store"
+	action="append",
+	default=[]
+)
+show.add_argument(
+	'-T',
+	'--alltargets',
+	help="Show results for all targets",
+	action="store_true",
 )
 show.add_argument(
 	'-c',
@@ -128,17 +142,8 @@ if __name__ == "__main__":
 
 	# run the subprogram
 	try:
-		# before we do anything else
-		# we have to make sure the configuration is loaded correctly
-		from dummy import config
-
-		# set the target to make sure the config
-		# uses the right configuration values during the execution of dummy
-		if hasattr( args, 'target' ) and args.target is not None:
-			config.set_target( args.target )
-
 		# now we can load the runner and do stuff
-		from dummy.runner import run, show
+		from dummy.runner import run
 
 		if not hasattr( args, 'func' ): parser.print_help()
 		elif args.func == 'run': run( args )

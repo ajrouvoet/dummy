@@ -7,7 +7,7 @@ import shutil
 from subprocess import check_call, Popen, PIPE, CalledProcessError
 
 from dummy import config
-from dummy.collector import Collector
+from dummy.runner.collectors import Collector
 from dummy.utils import lcov, io, git, kv_colon
 
 # don't show debug message per default
@@ -57,7 +57,7 @@ class CCoverageCollector( Collector ):
 
 		try:
 			# run lcov to get the test coverage file
-			outfile = os.path.join( test.env().get( 'RESULTS_DIR' ), CCoverageCollector.FILENAME )
+			outfile = os.path.join( test.env()[ 'RESULTS_DIR' ], CCoverageCollector.FILENAME )
 			io.create_dir( outfile )
 			proc = Popen([ 'lcov', '-c',
 				'-d', src,
@@ -97,21 +97,59 @@ class CCoverageCollector( Collector ):
 
 class RulestatCollector( Collector ):
 
-	FILENAME = "rulestat_out.txt"
+	RULESTAT_RESULT_FILE = "rulestat.log"
+
+	def __init__( self, path=None ):
+		assert path is not None, "RulestatCollector needs the location of the rulestat output"
+
+		self.statpath = path
 
 	def pre_test_hook( self, test ):
-		# zero the counters
-		# and the baseline file
-		srcdir = test.path
-		results_file = os.path.join( srcdir, self.FILENAME)
-
+		# remove the statfile
+		# to zero the counters
+		io.remove_file( self.statpath )
 
 	def collect( self, test ):
-		# collect the lcov data from the src directory
-		srcdir = test.path
-		results_file = os.path.join( srcdir, self.FILENAME)
+		try:
+			with open( self.statpath ) as fh:
+				out = fh.read()
+		except IOError as e:
+			logger.warn( "No rulestat data found for test `%s`" % test.name )
 
-		with open( results_file ) as fh:
-			out = fh.read()
+			return {}
+
+		# save the results in the test results
+		path = os.path.join( test.env()[ 'RESULTS_DIR' ], RulestatCollector.RULESTAT_RESULT_FILE )
+		with open( path, 'w' ) as fh:
+			fh.write( out )
 
 		return kv_colon.parse( out )
+
+class ScriptCollector( Collector ):
+	""" A class for running collector scripts.
+	"""
+
+	def __init__( self, path, type='value' ):
+		super( ScriptCollector, self ).__init__( type=type )
+
+		assert os.path.exists( path ), "Could not find the collector script: %s" % path
+		assert type in Collector.TYPE_CHOICES, "Unknown collector type: `%s`" % type
+
+		self._path = path
+
+	@property
+	def path( self ):
+		return self._path
+
+	def collect( self, test ):
+		# run the collector script with working directory the test folder.
+		abspath = os.path.abspath( test.path ).encode( 'string-escape' )
+		try:
+
+			output = subp.check_output([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
+		except IOError as e:
+			logger.error( "Script `%s` did not exit succesfully for test `%s`" % ( self.path, test.name ))
+			output = None
+
+		# parse the output
+		return self.parse_output( output )
