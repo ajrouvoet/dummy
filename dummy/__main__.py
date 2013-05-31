@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
 		# set the target to make sure the config
 		# uses the right configuration values during the execution of dummy
-		if hasattr( args, 'target' ):
+		if hasattr( args, 'target' ) and args.target is not None:
 			config.set_target( args.target )
 
 		# now we can load the runner and do stuff
