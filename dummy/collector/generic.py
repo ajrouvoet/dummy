@@ -6,8 +6,8 @@ import json
 import shutil
 from subprocess import check_call, Popen, PIPE, CalledProcessError
 
+from dummy import config
 from dummy.collector import Collector
-from dummy.config import settings
 from dummy.utils import lcov, io, git, kv_colon
 
 # don't show debug message per default
@@ -32,7 +32,7 @@ class PassFailCollector( Collector ):
 
 class CCoverageCollector( Collector ):
 
-	BASELINE = os.path.join( settings.TEMP_DIR, "coverage.baseline.info" )
+	BASELINE = os.path.join( config.TEMP_DIR, "coverage.baseline.info" )
 	FILENAME = "coverage.info"
 
 	def pre_test_hook( self, test ):
@@ -81,7 +81,7 @@ class CCoverageCollector( Collector ):
 		except AssertionError:
 			logger.warn(
 				"lcov collect failed for test `%s`: %s" % (
-					test.name, err.decode( settings.INPUT_ENCODING ).strip()
+					test.name, err.decode( config.INPUT_ENCODING ).strip()
 				)
 			)
 

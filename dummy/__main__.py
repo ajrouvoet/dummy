@@ -64,13 +64,18 @@ runner.add_argument(
 	action="store_true"
 )
 runner.add_argument(
+	'-t',
+	'--target',
+	help="Run a specific target",
+	action="store"
+)
+runner.add_argument(
 	'-c',
 	'--commit',
 	help="Run tests against a specific commit",
 	action="store"
 )
 
-# `dummy run [-s] <name>`
 show = sub.add_parser( 'show', help="results browsing" )
 show.set_defaults( func='show' )
 show.add_argument(
@@ -91,6 +96,12 @@ show.add_argument(
 	help="Show a specific metric or multiple metrics",
 	action="append",
 	default=[]
+)
+show.add_argument(
+	'-t',
+	'--target',
+	help="Show result of a specific target",
+	action="store"
 )
 show.add_argument(
 	'-c',
@@ -117,8 +128,16 @@ if __name__ == "__main__":
 
 	# run the subprogram
 	try:
-		# do this here, to catch
-		# errors from loading the configuration
+		# before we do anything else
+		# we have to make sure the configuration is loaded correctly
+		from dummy import config
+
+		# set the target to make sure the config
+		# uses the right configuration values during the execution of dummy
+		if hasattr( args, 'target' ):
+			config.set_target( args.target )
+
+		# now we can load the runner and do stuff
 		from dummy.runner import run, show
 
 		if not hasattr( args, 'func' ): parser.print_help()

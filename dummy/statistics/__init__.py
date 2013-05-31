@@ -15,9 +15,27 @@ class Statistic( object ):
 			return:
 				Statistic instance
 		"""
-		engine = conf.get( 'engine' )
+		enginename = conf.get( 'engine' )
+		kwargs = conf.get( 'kwargs', {} )
+		args = conf.get( 'args', [] )
 
-		assert engine is not None, "Statistic `%s` has no engine attached" % name
+		assert enginename is not None, "Statistic `%s` has no engine attached" % name
+
+		# try to import the engine
+		try:
+			mod, clsname = enginename.rsplit( '.', 1 )
+			mod = __import__( mod, fromlist=[ clsname ] )
+			engine = getattr( mod, clsname )
+		except ImportError as e:
+			logger.error( "Could not import the statistics engine `%s`" % enginename )
+			raise e
+
+		# try to initiate the engine
+		try:
+			engine = engine( *args, **kwargs )
+		except TypeError:
+			logger.error( "Could not initiate the statistics engine `%s`" % enginename )
+			raise e
 
 		return cls( name, engine )
 

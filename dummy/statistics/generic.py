@@ -4,7 +4,7 @@ import logging
 from subprocess import check_call, PIPE, CalledProcessError
 
 from dummy.statistics import Engine
-from dummy.config import settings
+from dummy import config
 from dummy.collector.generic import CCoverageCollector
 from dummy.utils import lcov
 
@@ -54,7 +54,7 @@ class CCoverageOverviewEngine( Engine ):
 	def __init__( self ):
 		super( CCoverageOverviewEngine, self ).__init__( metric=None )
 
-		self.path = os.path.join( settings.TEMP_DIR, "coverage_collect.info" )
+		self.path = os.path.join( config.TEMP_DIR, "coverage_collect.info" )
 
 	def run( self, *args, **kwargs ):
 		# create the baseline

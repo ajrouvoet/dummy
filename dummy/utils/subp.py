@@ -3,7 +3,7 @@ import sys
 import logging
 import subprocess as subp
 
-from dummy.config import settings
+from dummy import config
 from dummy.utils import git
 
 logger = logging.getLogger( __name__ )
@@ -22,15 +22,19 @@ def plugin_environ( test=None ):
 	"""
 	env = os.environ.copy()
 
-	for name in settings.ENV:
-		env[ name ] = getattr( settings, name )
+	env[ 'TEMP_DIR' ] = config.TEMP_DIR
+	env[ 'TESTS_DIR' ] = config.TESTS_DIR
+	env[ 'SRC_DIR' ] = config.SRC_DIR
+
+	for key, value in config.ENV.items():
+		env[ key ] = value
 
 	if test is not None:
 		env[ 'TEST_NAME' ] = test.name
 		env[ 'TEST_LOG' ] = test.log_path()
 		env[ 'RESULTS_DIR' ] = os.path.join(
-			settings.TEMP_DIR,
-			settings.STORAGE_DIR( test, commit=git.describe() )
+			config.TEMP_DIR,
+			config.STORAGE_DIR( test, commit=git.describe() )
 		)
 
 	return env
@@ -69,7 +73,7 @@ def subprocess( args, test=None, **kwargs ):
 
 		raise OSError( "Failed to execute `%s`. OS said: %s" % ( proc, str( e )))
 
-	return process.communicate()[0].decode( settings.INPUT_ENCODING )
+	return process.communicate()[0].decode( config.INPUT_ENCODING )
 
 def check_output( args, test=None, **kwargs ):
 	""" call a subprocess and blocks until it ends, returning the decode data of stdout.
@@ -100,7 +104,7 @@ def check_output( args, test=None, **kwargs ):
 	# run the process
 	try:
 		stdout = subp.check_output( args, **kwargs )
-		return stdout.decode( settings.INPUT_ENCODING )
+		return stdout.decode( config.INPUT_ENCODING )
 	except OSError as e:
 		if type( args[0] ) == 'list':
 			proc = " ".join( args[0] )

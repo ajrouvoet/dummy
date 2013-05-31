@@ -1,7 +1,7 @@
 import re
 from subprocess import Popen, PIPE, CalledProcessError
 
-from dummy.config import settings
+from dummy import config
 
 __all__ = ( "parse", "baseline" )
 
@@ -149,7 +149,7 @@ def baseline( path ):
 	# create the baseline
 	gcov = Popen(
 		[ 	'lcov', '-c', '-i',
-			'-d', settings.SRC_DIR,
+			'-d', config.SRC_DIR,
 			"-o", path
 		], stdout=PIPE, stderr=PIPE )
 	ret = gcov.wait()

@@ -1,7 +1,6 @@
 import os
 import json
 
-from dummy.config import settings
 from dummy.utils import git
 
 class Collector( object ):

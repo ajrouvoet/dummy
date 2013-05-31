@@ -3,7 +3,7 @@ import os
 import shutil
 import logging
 
-from dummy.config import settings
+from dummy import config
 from dummy.utils import io, git
 from dummy.models import TestResult
 
@@ -16,7 +16,7 @@ class StorageProvider:
 
 	def clean( self ):
 		# clean the existing result dir and create a new one.
-		result_dir = settings.STORAGE_DIR( self.result.test, commit=self.result.commit )
+		result_dir = config.STORAGE_DIR( self.result.test, commit=self.result.commit )
 		try:
 			shutil.rmtree( result_dir )
 		except OSError as e:
@@ -49,7 +49,7 @@ class JsonStorageProvider( StorageProvider ):
 		"""
 		commit = git.describe( commit )
 		fpath = os.path.join(
-			settings.STORAGE_DIR( test, commit=commit ),
+			config.STORAGE_DIR( test, commit=commit ),
 			'result.json'
 		)
 
@@ -72,7 +72,7 @@ class JsonStorageProvider( StorageProvider ):
 
 	def path( self ):
 		return os.path.join(
-			settings.STORAGE_DIR( self.result.test, commit=self.result.commit ),
+			config.STORAGE_DIR( self.result.test, commit=self.result.commit ),
 			'result.json'
 		)
 

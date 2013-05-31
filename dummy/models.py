@@ -4,7 +4,7 @@ import logging
 import dateutil.parser
 from datetime import datetime
 
-from dummy.config import config, settings
+from dummy import config
 from dummy.utils import io, git, subp
 from dummy.collector import Collector
 
@@ -53,7 +53,7 @@ class TestResult:
 		self.files = {}
 
 	def storage_dir( self ):
-		return settings.STORAGE_DIR( self.test, self.commit )
+		return config.STORAGE_DIR( self.test, self.commit )
 
 	def log( self, logdata ):
 		""" log the logdata to the results log file
@@ -212,21 +212,39 @@ class Metric:
 			return:
 				Metric instance
 		"""
-		coll = conf.get( 'collector' )
-
-		assert coll is not None, "Metric `%s` has no collector" % name
-
+		collname = conf.get( 'collector' )
+		script = conf.get( 'script' )
 		output_type = conf.get( 'type', Collector.VALUE )
 
-		if isinstance( coll, Collector ):
-			# if it is a class, initiate it as a collector
-			return cls( name, collector=coll )
+		assert collname is not None or script is not None,\
+			"Metric `%s` neither has a collector, nor a script" % name
+
+		if collname is not None:
+			kwargs = conf.get( 'kwargs', {} )
+			args = conf.get( 'args', [] )
+
+			# try to import the collector
+			try:
+				mod, clsname = collname.rsplit( '.', 1 )
+				logger.debug( collname )
+				logger.debug( mod )
+				logger.debug( clsname )
+				mod = __import__( mod, fromlist=[ clsname ] )
+				coll = getattr( mod, clsname )
+			except ImportError as e:
+				logger.error( "Could not import the collector `%s`" % collname )
+				raise e
+
+			# try to initiate the collector
+			try:
+				coll = coll( *args, **kwargs )
+			except TypeError:
+				logger.error( "Could not instantiate the collector `%s`" % collname )
+				raise e
 		else:
-			# if it is a string, then it's a path to a script.
-			return cls(
-				name,
-				collector=Script( coll, type=output_type )
-			)
+			coll = Script( coll, type=output_type )
+
+		return cls( name, collector=coll )
 
 	def __init__( self, name, collector ):
 		assert len( name ) > 0, "A metric must be named"
