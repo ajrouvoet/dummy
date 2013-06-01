@@ -1,8 +1,9 @@
-from dummy.utils import git, io
+from dummy.utils import git, io, argparser
 from dummy import config
-from dummy.models import Test, Metric
+from dummy.models import Test
+from dummy.runner.models import Metric
 from dummy.runner.statistics import Statistic
-from dummy.runner.storage import JsonStorageProvider
+from dummy.storage import JsonStorageProvider
 
 import os
 import glob
@@ -165,50 +166,11 @@ class Runner:
 				io.create_dir( relpath )
 				shutil.copyfile( abspath, relpath )
 
-def _discover_targets( args ):
-	targets = []
-
-	if args.alltargets:
-		for t in config.TARGETS.keys():
-			targets.append( t )
-	elif len( args.target ) == 0:
-		targets.append( config.DEFAULT_TARGET )
-	else:
-		for target in args.target:
-			targets.append( target )
-
-	return targets
-
-def _discover_tests( args ):
-	tests = []
-
-	# try to find the suites and append the testnames
-	# of the suite
-	for name in args.suite:
-		logger.info( "Loading tests from suite `%s`" % name )
-		# make sure to have a valid test suite name
-		try:
-			suite = config.SUITES[ name ]
-			for descr in suite:
-				for fname in Test.glob( descr ):
-					logger.debug( "Adding test `%s` to tests." % fname )
-					tests.append( Test( fname ))
-		except KeyError:
-			logger.error( "We looked, but a test suite with name `%s` was not found." % name )
-
-	# if not running a whole suite
-	# just queue the named tests
-	for names in [ Test.glob( name ) for name in args.tests ]:
-		for name in names:
-			tests.append( Test( fname ))
-
-	return tests
-
 # subprogram run
 def run( args ):
 	runner = Runner()
 
 	# discover the tests we need to run and add them to the runner
-	[ runner.add_test( t ) for t in _discover_tests( args )]
+	[ runner.add_test( t ) for t in argparser.discover_tests( args )]
 
-	runner.run( store=args.store, commit=args.commit, targets=_discover_targets( args ))
+	runner.run( store=args.store, commit=args.commit, targets=argparser.discover_targets( args ))

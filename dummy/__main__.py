@@ -143,11 +143,13 @@ if __name__ == "__main__":
 	# run the subprogram
 	try:
 		# now we can load the runner and do stuff
-		from dummy.runner import run
-
 		if not hasattr( args, 'func' ): parser.print_help()
-		elif args.func == 'run': run( args )
-		elif args.func == 'show': show( args )
+		elif args.func == 'run':
+			from dummy.runner import run
+ 			run( args )
+		elif args.func == 'show':
+			from dummy.viewer import show
+ 			show( args )
 		# elif args.func == 'quickstart': quickstart( args )
 
 	except Exception as e:

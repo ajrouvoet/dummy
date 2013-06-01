@@ -97,27 +97,3 @@ class LogFormatter( Formatter ):
 			logformatter.unindent()
 		else:
 			printer.info( colored( "%s" % metric_name, 'white' ) + ": %s" %  metric )
-
-class ResultManager:
-	""" Manages test results and can output them with the specified method.
-	"""
-	def __init__( self, results ):
-		self.results = results
-
-	def add_result( self, result ):
-		""" Add a TestResult to this ResultManager.
-		"""
-		self.results.append( result )
-
-	def format( self, *metrics, **kwargs ):
-		""" Format the results into the specified format.
-
-			Supported methods: `log`, `plot`.
-
-			:raises AssertionError: When the method is not supported.
-		"""
-		# default the formatter
-		formatter = kwargs.get( 'formatter', LogFormatter )
-
-		# format the results using the selected formatter
-		formatter( self.results ).format( *metrics )

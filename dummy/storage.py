@@ -38,7 +38,7 @@ class StorageProvider:
 class JsonStorageProvider( StorageProvider ):
 
 	@staticmethod
-	def load( commit, test ):
+	def load( commit, target, test ):
 		""" Load test result
 
 			raises:
