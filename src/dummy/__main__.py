@@ -14,8 +14,8 @@ ch = logging.StreamHandler()
 root.addHandler( ch )
 
 formatter = ColoredFormatter( "  %(white)s> %(log_color)s%(levelname)-8s %(reset)s%(message)s",
-    datefmt=None,
-    reset=True,
+	datefmt=None,
+	reset=True,
 	log_colors={
 		'DEBUG': 'white',
 		'INFO':	'green',

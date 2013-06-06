@@ -8,7 +8,7 @@ from subprocess import check_call, Popen, PIPE, CalledProcessError
 
 from dummy import config
 from dummy.runner.collectors import Collector
-from dummy.utils import lcov, io, git, kv_colon
+from dummy.utils import lcov, io, git, kv_colon, subp
 
 # don't show debug message per default
 logger = logging.getLogger( __name__ )
@@ -146,7 +146,11 @@ class ScriptCollector( Collector ):
 		abspath = os.path.abspath( test.path ).encode( 'string-escape' )
 		try:
 
-			output = subp.check_output([ os.path.abspath( self.path ), test.name ], test=test, cwd=abspath )
+			output = subp.check_output(
+				[ 	os.path.abspath( self.path ),
+					test.name
+				], test=test, cwd=abspath
+			)
 		except IOError as e:
 			logger.error( "Script `%s` did not exit succesfully for test `%s`" % ( self.path, test.name ))
 			output = None

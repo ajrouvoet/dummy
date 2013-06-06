@@ -36,10 +36,9 @@ def discover_tests( args ):
 		except KeyError:
 			logger.error( "We looked, but a test suite with name `%s` was not found." % name )
 
-	# if not running a whole suite
-	# just queue the named tests
+	# queue the named tests
 	for names in [ Test.glob( name ) for name in args.tests ]:
 		for name in names:
-			tests.append( Test( fname ))
+			tests.append( Test( name ))
 
 	return tests

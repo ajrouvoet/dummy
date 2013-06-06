@@ -68,7 +68,7 @@ class Runner:
 				"%s ..." % value[:40] if len( value ) > 40 else value
 			))
 
-	def run( self, commit=None, targets=[ config.DEFAULT_TARGET ], store=False ):
+	def run( self, target=config.DEFAULT_TARGET, commit=None, store=False ):
 		# make sure we have work to do
 		assert len( self.tests ) != 0, "No tests to run."
 
@@ -87,32 +87,24 @@ class Runner:
 				git.checkout( args.commit )
 				git.checkout( current, paths=config.TESTS_DIR )
 
-			# run/collect/store for every target
-			# this way we make sure the configuration is set correctly
-			# during the whole execution of the program
-			for i, t in enumerate( targets ):
-				config.set_target( t )
-				logger.info( "Running tests for target `%s` [%d/%d]" % ( t, i, len( targets )))
-				logger.info( 80*"-" )
+			# actual running of the test
+			# clean the runtime env
+			self.clean()
 
-				# clean the runtime env
-				self.clean()
+			# actual running of the tests
+			self._run_tests( target=target )
 
-				# actual running of the tests for this target
-				self._run_tests( target=t )
+			# gather the statistics as configured
+			self._gather_statistics()
 
-				# gather the statistics as configured
-				# per target
-				self._gather_statistics()
-
-				# store the results
-				if store:
-					self._store()
-					logger.info( "Stored results!" )
-				else:
-					# TODO
-					# ask the user if he wants to store the results
-					pass
+			# store the results
+			if store:
+				self._store()
+				logger.info( "Stored results!" )
+			else:
+				# TODO
+				# ask the user if he wants to store the results
+				pass
 
 		# if a git error is caught while checking out the commit on
 		# which to run the tests
@@ -139,7 +131,7 @@ class Runner:
 		"""
 		total = len( self.tests )
 
-		for i, test in enumerate( self.tests ):
+		for i, test in enumerate( self.tests, 1 ):
 			# run the pre test hooks
 			logger.info( "Running pre-test hooks..." )
 			self._pre_test_hook( test )
@@ -168,9 +160,21 @@ class Runner:
 
 # subprogram run
 def run( args ):
-	runner = Runner()
+	# discover the tests and targets we need to run
+	targets = argparser.discover_targets( args )
+	tests = argparser.discover_tests( args )
 
-	# discover the tests we need to run and add them to the runner
-	[ runner.add_test( t ) for t in argparser.discover_tests( args )]
+	# run every target
+	# this way we make sure the configuration is set correctly
+	# during the whole execution of the program
+	for i, t in enumerate( targets, 1 ):
+		config.set_target( t )
 
-	runner.run( store=args.store, commit=args.commit, targets=argparser.discover_targets( args ))
+		# create the runner
+		runner = Runner()
+		for test in tests:
+			runner.add_test( test )
+
+		logger.info( "Running tests for target `%s` [%d/%d]" % ( t, i, len( targets )))
+		logger.info( 80*"-" )
+		runner.run( store=args.store, target=t, commit=args.commit )

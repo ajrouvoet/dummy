@@ -27,7 +27,7 @@ def plugin_environ( test=None ):
 	env[ 'SRC_DIR' ] = config.SRC_DIR
 
 	for key, value in config.ENV.items():
-		env[ key ] = value
+		env[ key ] = str( value )
 
 	if test is not None:
 		env[ 'TEST_NAME' ] = test.name
