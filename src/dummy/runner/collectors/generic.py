@@ -120,6 +120,7 @@ class RulestatCollector( Collector ):
 
 		# save the results in the test results
 		path = os.path.join( test.env()[ 'RESULTS_DIR' ], RulestatCollector.RULESTAT_RESULT_FILE )
+		io.create_dir( path )
 		with open( path, 'w' ) as fh:
 			fh.write( out )
 
