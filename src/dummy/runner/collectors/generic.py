@@ -35,12 +35,15 @@ class CCoverageCollector( Collector ):
 	BASELINE = os.path.join( config.TEMP_DIR, "coverage.baseline.info" )
 	FILENAME = "coverage.info"
 
+	def __init__( self, srcdir=config.SRC_DIR ):
+		self.srcdir = srcdir
+
 	def pre_test_hook( self, test ):
 		# zero the counters
 		try:
 			check_call([
 				'lcov', '-z',
-				'-d', test.env().get( 'SRC_DIR' )
+				'-d', self.srcdir
 			], stdout=PIPE, stderr=PIPE )
 		except CalledProcessError as e:
 			logger.error( "Could not zero the coverage counters" )
@@ -52,16 +55,13 @@ class CCoverageCollector( Collector ):
 		lcov.baseline( CCoverageCollector.BASELINE )
 
 	def collect( self, test ):
-		# collect the lcov data from the src directory
-		src = test.env().get( 'SRC_DIR' )
-
 		try:
 			# run lcov to get the test coverage file
 			outfile = os.path.join( test.env()[ 'RESULTS_DIR' ], CCoverageCollector.FILENAME )
 			io.create_dir( outfile )
 			proc = Popen([ 'lcov', '-c',
-				'-d', src,
-				'-b', src,
+				'-d', self.srcdir,
+				'-b', self.srcdir,
 				'-o', outfile
 			], stdout=PIPE, stderr=PIPE )
 
