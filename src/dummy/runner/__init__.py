@@ -139,7 +139,11 @@ class Runner:
 			# run the test
 			# and save the TestResult
 			logger.info( "Running test: `%s` [%d/%d]" % ( test.name, i, total ))
-			self.results.append( test.run( target=target, metrics=self.metrics.values() ))
+
+			try:
+				self.results.append( test.run( target=target, metrics=self.metrics.values() ))
+			except Test.RunError as e:
+				logger.info( str( e ))
 
 			logger.info( 80*"-" )
 

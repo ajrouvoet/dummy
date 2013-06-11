@@ -108,6 +108,15 @@ class TestResult:
 
 class Test:
 
+	class RunError( subp.CalledProcessError ):
+
+		def __init__( self, test, e ):
+			super( Test.RunError, self ).__init__( cmd=e.cmd, output=e.output, returncode=e.returncode )
+			self.test = test
+
+		def __str__( self ):
+			return "Could not execute test `%s`: %s" % ( self.test.name, self.output )
+
 	@staticmethod
 	def glob( name ):
 		path = os.path.join( config.TESTS_DIR, name )
@@ -145,28 +154,32 @@ class Test:
 
 			raises:
 				IOError: Unable to write output to file in log directory.
+				Test.RunError: If executing the test failed
 
 			return:
 				{string}: The test output.
 		"""
-		# run the actual test
-		start = datetime.now()
-		output = subp.subprocess([ config.TEST_RUNNER, self.path ], test=self )
-		stop = datetime.now()
+		try:
+			# run the actual test
+			start = datetime.now()
+			output = subp.check_output([ config.TEST_RUNNER, self.path ], test=self )
+			stop = datetime.now()
 
-		# create a result instance
-		result = TestResult( self, start, stop, target )
-		result.log( output.encode( 'utf8' ))
+			# create a result instance
+			result = TestResult( self, start, stop, target )
+			result.log( output.encode( 'utf8' ))
 
-		for metric in metrics:
-			value = metric.collect( self )
-			result.add_metric( metric, value )
+			for metric in metrics:
+				value = metric.collect( self )
+				result.add_metric( metric, value )
 
-			# log the collection of the metric
-			output = str( value ).strip()
-			logger.info( "\t%s: %s" % (
-				metric.name,
-				"%s ..." % output[:40] if len( output ) > 40 else output
-			))
+				# log the collection of the metric
+				output = str( value ).strip()
+				logger.info( "\t%s: %s" % (
+					metric.name,
+					"%s ..." % output[:40] if len( output ) > 40 else output
+				))
 
-		return result
+			return result
+		except subp.CalledProcessError as e:
+			raise Test.RunError( self, e )

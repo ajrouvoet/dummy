@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import subprocess as subp
+from subprocess import CalledProcessError
 
 from dummy import config
 from dummy.utils import git
@@ -111,7 +112,13 @@ def check_output( args, test=None, **kwargs ):
 		else:
 			proc = args[0]
 
-		raise OSError( "Failed to execute `%s`. OS said: %s" % ( proc, str( e )))
-	except subp.CalledProcessError as e:
-		logger.debug( "Error output: `%s`" % e)
-		raise IOError( "The process `%s` exited with a non-zero exit code." % args )
+		logger.debug( "Could not execute `%s`" % proc )
+		raise
+	except CalledProcessError as e:
+		if type( args[0] ) == 'list':
+			proc = " ".join( args[0] )
+		else:
+			proc = args[0]
+
+		logger.debug( "Subprocess `%s` failed" % proc )
+		raise
