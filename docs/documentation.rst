@@ -74,3 +74,15 @@ Options:
 
 		dummy show --commit <committish> <test name>
 		dummy show -c <committish> <test name>
+
+Coverage
+--------
+Coverage data is collected by lcov, which is a tool acting on GCC-generated coverage files.
+To generate these files, add the ``--coverage`` compile-time flag to your build files.
+In the respective directory containing test results, there will be a ``coverage.info`` file.
+One can generate HTML output using the following command::
+
+        genhtml coverage.info -o bam --ignore-errors source --branch-coverage
+
+Here, ``bam`` is the output directory, and ``--branch-coverage`` indicates that lcov also outputs
+branch coverage information. This can take quite some processing, and can be omitted.
