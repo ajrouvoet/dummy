@@ -22,6 +22,9 @@ class Runner:
 		self.statistics = {} # list of statistics to collect
 		self.gathered_stats = {} # list of gathered statistics
 
+		# clean the runtime env
+		self.clean()
+
 		# load the metric and statistic instances from the config
 		self.load_metrics()
 		self.load_statistics()
@@ -30,26 +33,30 @@ class Runner:
 		self.tests.append( test )
 
 	def load_metrics( self ):
+		logger.info( "Loading metrics..." )
+
 		for name, metric in config.METRICS.items():
+			logger.debug( "Loading metric `%s`" % name )
+
 			m = Metric.parse( name, metric )
 			self.metrics[ name ] = m
 
-			logger.debug( "Loaded metric `%s`" % m.name )
-
 	def load_statistics( self ):
+		logger.info( "Loading statistics..." )
+
 		for name, statistic in config.STATISTICS.items():
+			logger.debug( "Loading statistic `%s`" % name )
+
 			s = Statistic.parse( name, statistic )
 			self.statistics[ name ] = s
 
-			logger.debug( "Loaded statistic `%s`" % s.name )
-
 	def clean( self ):
+		logger.debug( "Cleaning `%s`" % config.TEMP_DIR )
 		if os.path.isdir( config.TEMP_DIR ):
 			shutil.rmtree( config.TEMP_DIR )
 
 		# make the tmp directory for use
 		io.create_dir( os.path.join( config.TEMP_DIR, "bla" ))
-		logger.debug( "Cleaned `%s`" % config.TEMP_DIR )
 
 	def _pre_test_hook( self, test ):
 		for name, metric in self.metrics.items():
@@ -86,10 +93,6 @@ class Runner:
 				logger.warning( "Checking out commit `%s`" % args.commit )
 				git.checkout( args.commit )
 				git.checkout( current, paths=config.TESTS_DIR )
-
-			# actual running of the test
-			# clean the runtime env
-			self.clean()
 
 			# actual running of the tests
 			self._run_tests( target=target )

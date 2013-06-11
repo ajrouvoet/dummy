@@ -38,6 +38,11 @@ class CCoverageCollector( Collector ):
 	def __init__( self, srcdir=config.SRC_DIR ):
 		self.srcdir = srcdir
 
+		# create the lcov log dir
+		# and the baseline file
+		io.create_dir( CCoverageCollector.BASELINE )
+		lcov.baseline( CCoverageCollector.BASELINE )
+
 	def pre_test_hook( self, test ):
 		# zero the counters
 		try:
@@ -48,11 +53,6 @@ class CCoverageCollector( Collector ):
 		except CalledProcessError as e:
 			logger.error( "Could not zero the coverage counters" )
 			raise
-
-		# create the lcov log dir
-		# and the baseline file
-		io.create_dir( CCoverageCollector.BASELINE )
-		lcov.baseline( CCoverageCollector.BASELINE )
 
 	def collect( self, test ):
 		try:
