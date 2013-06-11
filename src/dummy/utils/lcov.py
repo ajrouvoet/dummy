@@ -1,9 +1,11 @@
 import re
+import logging
 from subprocess import Popen, PIPE, CalledProcessError
 
 from dummy import config
 
 __all__ = ( "parse", "baseline" )
+logger = logging.getLogger( __name__ )
 
 class Parser:
 
@@ -46,6 +48,9 @@ class Parser:
 								'functions': <int>,
 								'functions_hit': <int>
 							}
+
+			raises:
+				TypeError: When the info file is not formatted correctly.
 		"""
 		result = {
 			'files': {}
@@ -61,10 +66,19 @@ class Parser:
 
 		for line in info.splitlines():
 			# first make sure we are in a file section
-			if fresult is None and Parser.rheader.match( line ):
-				fresult = {
-					'function_coverage': {}
-				}
+			if fresult is None:
+				m = Parser.rpath.match( line )
+				if m is not None:
+					fresult = {
+						'function_coverage': {}
+					}
+					fpath = m.group( 'path' )
+
+					continue
+				elif Parser.rheader.match( line ):
+					continue
+				else:
+					raise TypeError( "Invalid coverage file format." )
 
 				continue
 			else:
@@ -116,12 +130,6 @@ class Parser:
 					# total
 					lines += found
 
-					continue
-
-				# file path
-				m = Parser.rpath.match( line )
-				if m is not None:
-					fpath = m.group( 'path' )
 					continue
 
 				# make sure we close the file section properly

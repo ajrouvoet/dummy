@@ -93,7 +93,11 @@ class CCoverageCollector( Collector ):
 		with open( outfile ) as fh:
 			out = fh.read()
 
-		return lcov.parse( out )
+		try:
+			return lcov.parse( out )
+		except TypeError as e:
+			logger.warn( "Unable to parse lcov data: `%s`" % e )
+			return {}
 
 class RulestatCollector( Collector ):
 
