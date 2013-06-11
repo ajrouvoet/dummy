@@ -1,4 +1,4 @@
-from dummy.formatter import Formatter
+from dummy.viewer.formatting import Formatter
 
 try:
 	import pylab

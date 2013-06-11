@@ -3,7 +3,7 @@ import glob
 import logging
 from subprocess import check_call, PIPE, CalledProcessError
 
-from dummy.runner.statistics import Engine
+from dummy.statistics import Engine
 from dummy import config
 from dummy.runner.collectors.generic import CCoverageCollector
 from dummy.utils import lcov

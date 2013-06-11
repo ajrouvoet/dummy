@@ -2,7 +2,7 @@ from dummy.utils import git, io, argparser
 from dummy import config
 from dummy.models import Test
 from dummy.runner.models import Metric
-from dummy.runner.statistics import Statistic
+from dummy.statistics import Statistic
 from dummy.storage import JsonStorageProvider
 
 import os

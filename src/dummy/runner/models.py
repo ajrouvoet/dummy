@@ -34,14 +34,14 @@ class Metric:
 				coll = getattr( mod, clsname )
 			except ImportError as e:
 				logger.error( "Could not import the collector `%s`" % collname )
-				raise e
+				raise
 
 			# try to initiate the collector
 			try:
 				coll = coll( *args, **kwargs )
 			except TypeError:
 				logger.error( "Could not instantiate the collector `%s`" % collname )
-				raise e
+				raise
 		else:
 			coll = ScriptCollector( script, type=output_type )
 

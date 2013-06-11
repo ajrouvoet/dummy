@@ -3,7 +3,8 @@ import logging
 from dummy import config
 from dummy.utils import git, argparser
 from dummy.storage import JsonStorageProvider
-from dummy.viewer.formatters import LogFormatter
+from dummy.viewer.formatting import LogFormatter
+from dummy.statistics import Statistic
 
 logger = logging.getLogger( __name__ )
 
@@ -36,16 +37,40 @@ class ResultManager:
 			.. kwargs:
 				.. formatter:
 					formatter to use to format the results;
-					defaults to 'dummy.viewer.formatters.LogFormatter'
+					defaults to 'dummy.viewer.formatting.LogFormatter'
 
 			:return formatter.format return value
 
 			:raises AssertionError: When the method is not supported.
 		"""
-		# format the results using the selected formatter
-		return formatter( self.results ).format( *metrics )
+		# serialise the results
+		results = [ s.serialize() for s in self.results ]
 
-def show( args ):
+		# filter the metrics
+		for s in results:
+			# Format metrics
+			# If no metrics given, format all metrics
+			# Note: You cannot do metrics = testresult.metrics, because of th next loop.
+			if len( metrics ) == 0:
+				dometrics = s.metrics.keys()
+			else:
+				dometrics = metrics
+
+			s[ 'metrics' ] = {
+				key: value
+				for ( key, value ) in s[ 'metrics' ].items()
+				if key in dometrics
+			}
+
+		# format the results using the selected formatter
+		concat = []
+		f = formatter( title="{name} ({commit})" )
+		for s in results:
+			concat.append( f.format( s ))
+
+		return concat
+
+def _parse_results( args ):
 	# discover the commit
 	commit = 'HEAD'
 	if args.commit is not None:
@@ -61,13 +86,43 @@ def show( args ):
 	manager = ResultManager()
 	manager.load_results( commit=commit, tests=tests, targets=targets )
 
+	return manager
+
+def show( args ):
+	manager = _parse_results( args )
+
 	# check if any formatting options were given
 	if args.plot:
-		from dummy.viewer.formatters import PlotFormatter
+		from dummy.viewer.formatting import PlotFormatter
 		formatter = PlotFormatter
 	else:
-		from dummy.viewer.formatters import LogFormatter
+		from dummy.viewer.formatting import LogFormatter
 		formatter = LogFormatter
 
 	# format them in some way
 	manager.format( metrics=args.metric, formatter=formatter )
+
+def stat( args ):
+	manager = _parse_results( args )
+	assert len( manager.results ) > 0, \
+		"No results to calculate statistics for (have you specified a test?)"
+
+	logger.info( "Loading statistics..." )
+
+	stats = {}
+	for name in args.stat:
+		logger.debug( "Loading statistic `%s`" % name )
+		stat = config.STATISTICS.get( name )
+
+		assert stat is not None, "Statistic `%s` is not configured" % name
+
+		# parse the config
+		s = Statistic.parse( name, stat )
+
+		# compute the statistic
+		stats[ name ] = s.gather( manager.results )
+
+	# format the stats
+	for name, stat in stats.items():
+		formatter = LogFormatter( title=name )
+		formatter.format( stat )

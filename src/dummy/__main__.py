@@ -13,17 +13,25 @@ root.setLevel( logging.DEBUG )
 ch = logging.StreamHandler()
 root.addHandler( ch )
 
-formatter = ColoredFormatter( "  %(white)s> %(log_color)s%(levelname)-8s %(reset)s%(message)s",
-	datefmt=None,
-	reset=True,
-	log_colors={
-		'DEBUG': 'white',
-		'INFO':	'green',
-		'WARNING': 'yellow',
-		'ERROR': 'red',
-		'CRITICAL': 'red'
-	}
-)
+# only use colored formatting if the stderr
+# is connected to a tty
+if sys.stderr.isatty():
+	formatter = ColoredFormatter( "  %(white)s> %(log_color)s%(levelname)-8s %(reset)s%(message)s",
+		datefmt=None,
+		reset=True,
+		log_colors={
+			'DEBUG': 'white',
+			'INFO':	'green',
+			'WARNING': 'yellow',
+			'ERROR': 'red',
+			'CRITICAL': 'red'
+		}
+	)
+else:
+	formatter = logging.Formatter( "  > %(levelname)-8s %(message)s",
+		datefmt=None
+	)
+
 ch.setFormatter( formatter )
 
 # make sure to add the dummy module directory to the path
@@ -81,6 +89,48 @@ runner.add_argument(
 	'--commit',
 	help="Run tests against a specific commit",
 	action="store"
+)
+
+stat = sub.add_parser( 'stat', help="Statistics gathering" )
+stat.set_defaults( func='stat', alltargets=False )
+stat.add_argument(
+	'tests',
+	help="names of the tests to inspect",
+	nargs="*"
+)
+stat.add_argument(
+	'-S',
+	'--suite',
+	help="names of the suites to inspect",
+	action="append",
+	default=[]
+)
+stat.add_argument(
+	'-m',
+	'--metric',
+	help="Show a specific metric or multiple metrics",
+	action="append",
+	default=[]
+)
+stat.add_argument(
+	'-t',
+	'--target',
+	help="Calculate result of a specific target",
+	action="append",
+	default=[]
+)
+stat.add_argument(
+	'-c',
+	'--commit',
+	help="Show results of a specific committish",
+	action="store"
+)
+stat.add_argument(
+	'-s',
+	'--stat',
+	help="Calculate the named stat",
+	action="append",
+	default=[]
 )
 
 show = sub.add_parser( 'show', help="results browsing" )
@@ -150,10 +200,15 @@ if __name__ == "__main__":
 		elif args.func == 'show':
 			from dummy.viewer import show
  			show( args )
+ 		elif args.func == 'stat':
+ 			from dummy.viewer import stat
+ 			stat( args )
 		# elif args.func == 'quickstart': quickstart( args )
 
 	except Exception as e:
 		logging.getLogger( 'dummy' ).critical( str( e ))
 		# to trace or not to trace
 		if args.debug:
-			raise
+			import pdb
+			pdb.post_mortem()
+			# raise
