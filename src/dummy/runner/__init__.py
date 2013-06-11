@@ -143,7 +143,7 @@ class Runner:
 			try:
 				self.results.append( test.run( target=target, metrics=self.metrics.values() ))
 			except Test.RunError as e:
-				logger.info( str( e ))
+				logger.error( str( e ))
 
 			logger.info( 80*"-" )
 
