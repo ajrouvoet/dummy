@@ -158,7 +158,8 @@ def baseline( path ):
 	gcov = Popen(
 		[ 	'lcov', '-c', '-i',
 			'-d', config.SRC_DIR,
-			"-o", path
+			'-o', path,
+			'--rc', 'lcov_branch_coverage=1',
 		], stdout=PIPE, stderr=PIPE )
 	ret = gcov.wait()
 	( out, err ) = gcov.communicate()

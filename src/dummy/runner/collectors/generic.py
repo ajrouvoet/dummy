@@ -62,7 +62,8 @@ class CCoverageCollector( Collector ):
 			proc = Popen([ 'lcov', '-c',
 				'-d', self.srcdir,
 				'-b', self.srcdir,
-				'-o', outfile
+				'-o', outfile,
+				'--rc', 'lcov_branch_coverage=1',
 			], stdout=PIPE, stderr=PIPE )
 
 			# let's get the output
@@ -73,7 +74,8 @@ class CCoverageCollector( Collector ):
 			proc = Popen([ 'lcov',
 				'-a', CCoverageCollector.BASELINE,
 				'-a', outfile,
-				'-o', outfile
+				'-o', outfile,
+				'--rc', 'lcov_branch_coverage=1',
 			], stdout=PIPE, stderr=PIPE )
 
 			out, err = proc.communicate()
