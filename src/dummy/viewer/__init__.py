@@ -106,10 +106,17 @@ def stat( args ):
 	assert len( manager.results ) > 0, \
 		"No results to calculate statistics for (have you specified a test?)"
 
-	logger.info( "Loading statistics..." )
 
 	stats = {}
-	for name in args.stat:
+	stat_names = args.stat
+	# If no statistics given, load all configured statistics.
+	if len( stat_names ) == 0:
+		logger.info( "No statistics given, using all configured statistics" )
+		stat_names = config.STATISTICS.keys()
+
+	for name in stat_names:
+		logger.info( "Loading statistics: `%s`." % stat_names )
+
 		logger.debug( "Loading statistic `%s`" % name )
 		stat = config.STATISTICS.get( name )
 
