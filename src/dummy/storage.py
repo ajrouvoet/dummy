@@ -11,6 +11,18 @@ logger = logging.getLogger( __name__ )
 
 class StorageProvider:
 
+	@staticmethod
+	def exists( commit, target, test ):
+		""" Check if a test results exists
+
+			returns:
+				bool
+		"""
+		commit = git.describe( commit )
+		fpath = config.STORAGE_DIR( test, commit=commit )
+
+		return os.path.exists( fpath )
+
 	def __init__( self, result ):
 		self.result = result
 

@@ -66,6 +66,12 @@ runner.add_argument(
 	default=[]
 )
 runner.add_argument(
+	'-!',
+	'--complement',
+	help="Only run tests for which no results exist",
+	action="store_true"
+)
+runner.add_argument(
 	'-s',
 	'--store',
 	help="Store the test results",
