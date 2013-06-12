@@ -83,16 +83,8 @@ class Runner:
 				git.checkout( current, paths=config.TESTS_DIR )
 
 			# actual running of the tests
-			self._run_tests( target=target )
+			self._run_tests( target=target, store=store )
 
-			# store the results
-			if store:
-				self._store()
-				logger.info( "Stored results!" )
-			else:
-				# TODO
-				# ask the user if he wants to store the results
-				pass
 
 		# if a git error is caught while checking out the commit on
 		# which to run the tests
@@ -116,7 +108,7 @@ class Runner:
 			# make sure to remove the lock file
 			io.remove_file( config.LOCK_FILE )
 
-	def _run_tests( self, target ):
+	def _run_tests( self, target, store ):
 		""" run the tests in the queue
 		"""
 		total = len( self.tests )
@@ -131,19 +123,27 @@ class Runner:
 			logger.info( "Running test: `%s` [%d/%d]" % ( test.name, i, total ))
 
 			try:
-				self.results.append( test.run( target=target, metrics=self.metrics.values() ))
+				result = test.run( target=target, metrics=self.metrics.values() )
+				self.results.append( result )
 			except Test.RunError as e:
 				logger.error( str( e ))
 
+			# store the results
+			if store:
+				self._store_result( result )
+				logger.info( "Stored results!" )
+			else:
+				# TODO
+				# ask the user if he wants to store the results
+				pass
+
 			logger.info( 80*"-" )
+	
+	def _store_result( self, result ):
+		JsonStorageProvider( result ).store()
 
-	def _store( self ):
-		for result in self.results:
-			JsonStorageProvider( result ).store()
-
-		# copy the files from the temp results to the results
-		temp_results_dir = os.path.join( config.TEMP_DIR, config.TARGET_DIR )
-		for path, dirs, files in os.walk( temp_results_dir ):
+		temp_result_dir = os.path.join( config.TEMP_DIR, result.storage_dir() )
+		for path, dirs, files in os.walk( temp_result_dir ):
 			for f in files:
 				abspath = os.path.join( path, f )
 				relpath = os.path.relpath( abspath, config.TEMP_DIR )
@@ -153,9 +153,13 @@ class Runner:
 				io.create_dir( relpath )
 				shutil.move( abspath, relpath )
 
-		# After moving all the results files from the temp_results_dir, delete it.
-		logger.debug( "Removing temporary results directory." )
-		shutil.rmtree( temp_results_dir )
+		# After moving all the results files from the temp_result_dir, delete it.
+		logger.debug( "Removing temporary result directory: `%s`." % temp_result_dir )
+		shutil.rmtree( temp_result_dir )
+
+	def _store( self ):
+		for result in self.results:
+			_store_result( result )
 
 # subprogram run
 def run( args ):
