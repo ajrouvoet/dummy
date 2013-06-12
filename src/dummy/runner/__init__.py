@@ -160,10 +160,10 @@ class Runner:
 				abspath = os.path.join( path, f )
 				relpath = os.path.relpath( abspath, config.TEMP_DIR )
 
-				logger.debug( "Copying result file `%s`", relpath )
+				logger.debug( "Moving result file `%s`", relpath )
 
 				io.create_dir( relpath )
-				shutil.copyfile( abspath, relpath )
+				shutil.move( abspath, relpath )
 
 # subprogram run
 def run( args ):
