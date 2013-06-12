@@ -45,9 +45,13 @@ class KeyValueCountEngine( Engine ):
 		return self.bars
 
 	def process( self, data ):
-		for key, value in data.items():
-			self.bars[ key ] = self.bars.get( key, 0 ) + value
-			self.bars[ 'total' ] += value
+		try:
+			for key, value in data.items():
+				self.bars[ key ] = self.bars.get( key, 0 ) + int( value )
+				self.bars[ 'total' ] += value
+		except TypeError as e:
+			logger.error( "Badly formatted rulestat result file." )
+			raise
 
 class CCoverageOverviewEngine( Engine ):
 
