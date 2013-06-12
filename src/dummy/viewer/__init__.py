@@ -24,7 +24,6 @@ class ResultManager:
 					self.add_result( JsonStorageProvider.load( commit, target, test ))
 				except ValueError as e:
 					logger.error( "No test results exists yet for test `%s`" % test.name )
-					raise
 
 	def add_result( self, result ):
 		""" Add a TestResult to this ResultManager.

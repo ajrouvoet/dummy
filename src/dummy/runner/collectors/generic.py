@@ -130,7 +130,11 @@ class RulestatCollector( Collector ):
 		with open( path, 'w' ) as fh:
 			fh.write( out )
 
-		return kv_colon.parse( out )
+		# parse the key value pairs into a dict
+		parsed = kv_colon.parse( out )
+
+		# interpret the values as integers
+ 		return { key: int( value ) for key, value in parsed.items() }
 
 class ScriptCollector( Collector ):
 	""" A class for running collector scripts.
