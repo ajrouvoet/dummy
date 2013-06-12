@@ -155,7 +155,8 @@ class Runner:
 			JsonStorageProvider( result ).store()
 
 		# copy the files from the temp results to the results
-		for path, dirs, files in os.walk( os.path.join( config.TEMP_DIR, config.TARGET_DIR )):
+		temp_results_dir = os.path.join( config.TEMP_DIR, config.TARGET_DIR )
+		for path, dirs, files in os.walk( temp_results_dir ):
 			for f in files:
 				abspath = os.path.join( path, f )
 				relpath = os.path.relpath( abspath, config.TEMP_DIR )
@@ -164,6 +165,10 @@ class Runner:
 
 				io.create_dir( relpath )
 				shutil.move( abspath, relpath )
+
+		# After moving all the results files from the temp_results_dir, delete it.
+		logger.debug( "Removing temporary results directory." )
+		shutil.rmtree( temp_results_dir )	
 
 # subprogram run
 def run( args ):
