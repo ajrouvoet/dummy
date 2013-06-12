@@ -2,6 +2,7 @@ __pycache__/
 dist/
 *.pyc
 python/
+dummy-*.tgz
 
 *.sublime-project
 *.sublime-workspace
