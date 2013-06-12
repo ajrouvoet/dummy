@@ -98,7 +98,7 @@ runner.add_argument(
 )
 
 stat = sub.add_parser( 'stat', help="Statistics gathering" )
-stat.set_defaults( func='stat', alltargets=False )
+stat.set_defaults( func='stat', alltargets=False, complement=False )
 stat.add_argument(
 	'tests',
 	help="names of the tests to inspect",
@@ -140,7 +140,7 @@ stat.add_argument(
 )
 
 show = sub.add_parser( 'show', help="results browsing" )
-show.set_defaults( func='show' )
+show.set_defaults( func='show', complement=False )
 show.add_argument(
 	'tests',
 	help="names of the tests to inspect",

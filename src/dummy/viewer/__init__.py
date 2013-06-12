@@ -51,7 +51,7 @@ class ResultManager:
 			# If no metrics given, format all metrics
 			# Note: You cannot do metrics = testresult.metrics, because of th next loop.
 			if len( metrics ) == 0:
-				dometrics = s.metrics.keys()
+				dometrics = s[ 'metrics' ].keys()
 			else:
 				dometrics = metrics
 
