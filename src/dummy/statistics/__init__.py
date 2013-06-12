@@ -33,7 +33,7 @@ class Statistic( object ):
 		# try to initiate the engine
 		try:
 			engine = engine( *args, **kwargs )
-		except TypeError:
+		except TypeError as e:
 			logger.error( "Could not initiate the statistics engine `%s`" % enginename )
 			raise e
 
