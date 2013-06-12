@@ -77,10 +77,6 @@ class CCoverageOverviewEngine( Engine ):
 
 		# combine the data with the accumulated set
 		try:
-			logger.info(
-				[ 'lcov', '-a', self.collectpath ] + opts + \
-				[ '-o', self.collectpath, '--rc', 'lcov_branch_coverage=1']
-			)
 			proc = check_call(
 				[ 'lcov', '-a', self.collectpath ] + opts + \
 				[ '-o', self.collectpath, '--rc', 'lcov_branch_coverage=1'],
