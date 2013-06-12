@@ -54,7 +54,7 @@ class CCoverageOverviewEngine( Engine ):
 	def __init__( self ):
 		super( CCoverageOverviewEngine, self ).__init__( metric=None )
 
-		self.path = os.path.join( config.TEMP_DIR, "coverage_collect.info" )
+		self.path = os.path.join( config.TARGET_DIR, "coverage_collect.info" )
 
 	def run( self, *args, **kwargs ):
 		# create the baseline

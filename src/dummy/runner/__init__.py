@@ -2,7 +2,6 @@ from dummy.utils import git, io, argparser
 from dummy import config
 from dummy.models import Test
 from dummy.runner.models import Metric
-from dummy.statistics import Statistic
 from dummy.storage import JsonStorageProvider
 
 import os
@@ -34,7 +33,6 @@ class Runner:
 
 		# load the metric and statistic instances from the config
 		self.load_metrics()
-		self.load_statistics()
 
 	def add_test( self, test ):
 		self.tests.append( test )
@@ -48,15 +46,6 @@ class Runner:
 			m = Metric.parse( name, metric )
 			self.metrics[ name ] = m
 
-	def load_statistics( self ):
-		logger.info( "Loading statistics..." )
-
-		for name, statistic in config.STATISTICS.items():
-			logger.debug( "Loading statistic `%s`" % name )
-
-			s = Statistic.parse( name, statistic )
-			self.statistics[ name ] = s
-
 	def clean( self ):
 		logger.debug( "Cleaning `%s`" % config.TEMP_DIR )
 		if os.path.isdir( config.TEMP_DIR ):
@@ -68,19 +57,6 @@ class Runner:
 	def _pre_test_hook( self, test ):
 		for name, metric in self.metrics.items():
 			metric.pre_test_hook( test )
-
-	def _gather_statistics( self, stats=None ):
-		# default stats to all configured stats
-		if stats is None: stats = self.statistics
-
-		logger.info( "Gathering statistics:" )
-		for s in stats.values():
-			self.gathered_stats[ s.name ] = s.gather( self.results )
-			value = str( self.gathered_stats[ s.name ] ).strip()
-			logger.info( "\t%s: %s" % (
-				s.name,
-				"%s ..." % value[:40] if len( value ) > 40 else value
-			))
 
 	def run( self, target=config.DEFAULT_TARGET, commit=None, store=False ):
 		# make sure we have work to do
@@ -108,9 +84,6 @@ class Runner:
 
 			# actual running of the tests
 			self._run_tests( target=target )
-
-			# gather the statistics as configured
-			self._gather_statistics()
 
 			# store the results
 			if store:
@@ -202,6 +175,6 @@ def run( args ):
 			runner.add_test( test )
 
 		logger.info( "Running tests for target `%s` [%d/%d]" % ( t, i, len( targets )))
-		logger.info( 80*"-" )
+		logger.info( 80*"=" )
 
 		runner.run( store=args.store, target=t, commit=args.commit )
