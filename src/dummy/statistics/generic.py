@@ -58,34 +58,50 @@ class CCoverageOverviewEngine( Engine ):
 	def __init__( self ):
 		super( CCoverageOverviewEngine, self ).__init__( metric=None )
 
-		self.path = os.path.join( config.TEMP_DIR, "coverage_collect.info" )
+		self.collectpath = os.path.join( config.TEMP_DIR, "coverage_collect.info" )
+		self.paths = []
 
 	def run( self, *args, **kwargs ):
 		# create the baseline
 		logger.debug( "Creating coverage baseline" )
-		lcov.baseline( self.path )
+		lcov.baseline( self.collectpath )
 
 		return super( CCoverageOverviewEngine, self ).run( *args, **kwargs )
 
 	def get_result( self ):
-		with open( self.path ) as fh:
+		# map paths to options for lcov
+		opts = []
+
+		for path in self.paths:
+			opts += [ '-a', path ]
+
+		# combine the data with the accumulated set
+		try:
+			logger.info(
+				[ 'lcov', '-a', self.collectpath ] + opts + [ '-o', self.collectpath ]
+			)
+			proc = check_call(
+				[ 'lcov', '-a', self.collectpath ] + opts + [ '-o', self.collectpath ],
+				stdout=PIPE,
+				stderr=PIPE
+			)
+		except CalledProcessError as e:
+			logger.error( "lcov aggregation failed for test `%s`" % result.test.name )
+			raise
+
+		with open( self.collectpath ) as fh:
 			# parse the accumulated data
 			results = lcov.parse( fh.read() )
 
 		return results
 
 	def process( self, result ):
+		# create the path
 		path = os.path.join( config.STORAGE_DIR( result.test, result.commit ),
 			CCoverageCollector.FILENAME )
 
-		# combine the data with the accumulated set
-		try:
-			proc = check_call([ 'lcov',
-				'-a', self.path,
-				'-a', path,
-				'-o', self.path
-			], stdout=PIPE, stderr=PIPE )
-		except CalledProcessError as e:
-			logger.error( "lcov aggregation failed for test `%s`" % result.test.name )
-
-			raise
+		# check if it exists
+		if not os.path.exists( path ):
+			logger.warn( "Result for test %s has no coverage data attached" % str( result ) )
+		else:
+			self.paths.append( path )

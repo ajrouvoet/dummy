@@ -104,7 +104,7 @@ class TestResult:
 		return result
 
 	def __str__( self ):
-		return "`%s` result" % self.test.name
+		return self.test.name + " (%s)" % self.commit
 
 class Test:
 
