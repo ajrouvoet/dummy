@@ -40,7 +40,8 @@ defaults = {
 	'ENV': {},
 	'TEST_RUNNER': 'bin/run.sh',
 	'DEFAULT_TARGET': 'default',
-	'TARGETS': {}
+	'TARGETS': {},
+	'LOCK_FILE': '.tmp/.lock'
 }
 
 # set the defaults

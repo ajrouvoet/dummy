@@ -10,6 +10,7 @@ import glob
 import subprocess
 import logging
 import shutil
+import datetime
 
 logger = logging.getLogger( __name__ )
 
@@ -21,6 +22,12 @@ class Runner:
 		self.results = [] # list of TestResult instances obtained
 		self.statistics = {} # list of statistics to collect
 		self.gathered_stats = {} # list of gathered statistics
+
+		# assert no lock is set
+		assert not os.path.exists( config.LOCK_FILE ), \
+			"A dummy lock file exists. " +\
+			"If you are sure dummy is not already running" +\
+			", you can rm the `%s` file" % config.LOCK_FILE
 
 		# clean the runtime env
 		self.clean()
@@ -82,6 +89,11 @@ class Runner:
 		# if a commit is given, we need to checkout out the commit
 		# but keep the tests directory at the current branch
 		try:
+			# create a lock file to prevent multiple runners on the same repo
+			with open( config.LOCK_FILE, 'w' ) as fh:
+				fh.write( str( datetime.datetime.now() ))
+
+			# checkout the correct commit
 			if commit is not None:
 				current = git.current_branch()
 
@@ -116,9 +128,8 @@ class Runner:
 			logger.error( "Could not checkout `%s`... Sorry!" % commit )
 			raise
 
-		# but whatever error occurs during the program
-		# make sure to always checkout the original commit again
 		finally:
+			# make sure to always checkout the original commit again
 			if commit is not None:
 				try:
 					git.checkout( current )
@@ -128,6 +139,9 @@ class Runner:
 						"Could not checkout original branch... you'll have to do that yourself."
 					)
 					raise
+
+			# make sure to remove the lock file
+			io.remove_file( config.LOCK_FILE )
 
 	def _run_tests( self, target ):
 		""" run the tests in the queue
@@ -168,7 +182,7 @@ class Runner:
 
 		# After moving all the results files from the temp_results_dir, delete it.
 		logger.debug( "Removing temporary results directory." )
-		shutil.rmtree( temp_results_dir )	
+		shutil.rmtree( temp_results_dir )
 
 # subprogram run
 def run( args ):
@@ -189,4 +203,5 @@ def run( args ):
 
 		logger.info( "Running tests for target `%s` [%d/%d]" % ( t, i, len( targets )))
 		logger.info( 80*"-" )
+
 		runner.run( store=args.store, target=t, commit=args.commit )
