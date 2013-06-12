@@ -48,7 +48,7 @@ class KeyValueCountEngine( Engine ):
 		try:
 			for key, value in data.items():
 				self.bars[ key ] = self.bars.get( key, 0 ) + int( value )
-				self.bars[ 'total' ] += value
+				self.bars[ 'total' ] += int( value )
 		except TypeError as e:
 			logger.error( "Badly formatted rulestat result file." )
 			raise
