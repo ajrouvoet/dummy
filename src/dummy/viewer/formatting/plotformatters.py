@@ -1,13 +1,18 @@
 from dummy.viewer.formatting import Formatter
 
-try:
-	import pylab
-except ImportError as e:
-	raise ImportError(
-		"`matplotlib` is not installed on this system which is required for plotting results, sorry!"
-	)
-
 class PlotFormatter( Formatter ):
+
+	def __init__( self, *args, **kwargs ):
+		super( PlotFormatter, self ).__init__( self, *args, **kwargs )
+
+		# only try to import the plotting matlab as we need it
+		# as it is an optional dependency and might not be installed
+		try:
+			import pylab
+		except ImportError as e:
+			raise ImportError(
+				"`matplotlib` is not installed on this system which is required for plotting results, sorry!"
+			)
 
 	def format( self, *metrics ):
 		# create the figure
@@ -50,5 +55,3 @@ class PlotFormatter( Formatter ):
 			raise Exception(
 				"The metric `%s` is not numeric and can thus not be plotted." % metric
 			)
-
-
