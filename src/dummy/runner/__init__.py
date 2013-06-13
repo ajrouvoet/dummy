@@ -126,7 +126,8 @@ class Runner:
 				result = test.run( target=target, metrics=self.metrics.values() )
 				self.results.append( result )
 			except Test.RunError as e:
-				logger.error( str( e ))
+				logger.error( "Failed running test `%s`" % test.name )
+				logger.debug( str( e ))
 
 			# store the results
 			if store:

@@ -21,7 +21,8 @@ try:
 	import dummyconfig as userconfig
 except ImportError as e:
 	# clearify the error a bit
-	logger.error( "Project configuration could not be imported: %s" % str( e ))
+	logger.error( "Project configuration could not be imported." )
+	logger.debug( "ImportError message: `%s`" % str( e ))
 
 	# reraise for stacktrace
 	raise
