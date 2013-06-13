@@ -181,6 +181,4 @@ def include( path, include ):
 
 	# get the output
 	out, err = proc.communicate()
-	logger.debug( out )
-	logger.debug( err )
-	assert proc.returncode == 0
+	assert proc.returncode == 0, "Lcov had a non-zero exitcode: `%s`" % err
