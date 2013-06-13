@@ -35,22 +35,22 @@ class CCoverageCollector( Collector ):
 	BASELINE = os.path.join( config.TEMP_DIR, "coverage.baseline.info" )
 	FILENAME = "coverage.info"
 
-	def __init__( self, srcdir=config.SRC_DIR, filter=None ):
+	def __init__( self, srcdir=config.SRC_DIR, include=None ):
 		self.srcdir = srcdir
 
 		# Filter should not be an empty list.
-		if filter is not None and len( filter ) == 0:
-			self.filter = None
+		if include is not None and len( include ) == 0:
+			self.include = None
 			logger.warn( "Filter is an empty list, ignoring..." )
 		else:
-			self.filter = filter
+			self.include = include
 
 		# create the lcov log dir
 		# and the baseline file
 		io.create_dir( CCoverageCollector.BASELINE )
 		lcov.baseline( CCoverageCollector.BASELINE, srcdir=self.srcdir )
-		if self.filter not is None:
-			lcov.filter( CCoverageCollector.BASELINE, self.filter )
+		if self.include is not None:
+			lcov.include( CCoverageCollector.BASELINE, self.include )
 
 	def pre_test_hook( self, test ):
 		# zero the counters
@@ -90,9 +90,9 @@ class CCoverageCollector( Collector ):
 			out, err = proc.communicate()
 			assert proc.returncode == 0
 
-			# Then filter if necessary
-			if self.filter is not None:
-				lcov.filter( outfile, self.filter )
+			# Then include for includes if necessary
+			if self.include is not None:
+				lcov.include( outfile, self.include )
 
 		except AssertionError:
 			logger.warn(

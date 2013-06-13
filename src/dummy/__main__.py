@@ -215,5 +215,6 @@ if __name__ == "__main__":
 		logging.getLogger( 'dummy' ).critical( str( e ))
 		# to trace or not to trace
 		if args.debug:
+			# Then enter debug mode.
 			import pdb
 			pdb.post_mortem()
