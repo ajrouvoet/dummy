@@ -153,11 +153,11 @@ class Parser:
 # alias that shit
 def parse( info ): return Parser.parse( info )
 
-def baseline( path ):
+def baseline( path, srcdir=config.SRC_DIR ):
 	# create the baseline
 	gcov = Popen(
 		[ 	'lcov', '-c', '-i',
-			'-d', config.SRC_DIR,
+			'-d', srcdir,
 			'-o', path,
 			'--rc', 'lcov_branch_coverage=1',
 		], stdout=PIPE, stderr=PIPE )

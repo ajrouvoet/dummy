@@ -41,7 +41,7 @@ class CCoverageCollector( Collector ):
 		# create the lcov log dir
 		# and the baseline file
 		io.create_dir( CCoverageCollector.BASELINE )
-		lcov.baseline( CCoverageCollector.BASELINE )
+		lcov.baseline( CCoverageCollector.BASELINE, srcdir=self.srcdir )
 
 	def pre_test_hook( self, test ):
 		# zero the counters
