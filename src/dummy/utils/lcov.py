@@ -167,3 +167,19 @@ def baseline( path, srcdir=config.SRC_DIR ):
 	# make sure this was succesfull
 	# or else print the error
 	assert ret == 0, "Setting the lcov baseline failed"
+
+def filter( path, filter ):
+	""" Filter the given coverage file, so that only files in 'filter' are left.
+	"""
+	assert len( filter ) > 0
+	
+	proc = Popen(
+		[	'lcov',
+			'-o', path,
+			'-e'
+		].extend( filter ),
+		stdout = PIPE, sderr=PIPE )
+
+	# get the output
+	out, err = proc.communicate()
+	assert proc.returncode == 0

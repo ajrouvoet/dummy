@@ -35,13 +35,22 @@ class CCoverageCollector( Collector ):
 	BASELINE = os.path.join( config.TEMP_DIR, "coverage.baseline.info" )
 	FILENAME = "coverage.info"
 
-	def __init__( self, srcdir=config.SRC_DIR ):
+	def __init__( self, srcdir=config.SRC_DIR, filter=None ):
 		self.srcdir = srcdir
+
+		# Filter should not be an empty list.
+		if filter is not None and len( filter ) == 0:
+			self.filter = None
+			logger.warn( "Filter is an empty list, ignoring..." )
+		else:
+			self.filter = filter
 
 		# create the lcov log dir
 		# and the baseline file
 		io.create_dir( CCoverageCollector.BASELINE )
 		lcov.baseline( CCoverageCollector.BASELINE, srcdir=self.srcdir )
+		if self.filter not is None:
+			lcov.filter( CCoverageCollector.BASELINE, self.filter )
 
 	def pre_test_hook( self, test ):
 		# zero the counters
@@ -80,6 +89,11 @@ class CCoverageCollector( Collector ):
 
 			out, err = proc.communicate()
 			assert proc.returncode == 0
+
+			# Then filter if necessary
+			if self.filter is not None:
+				lcov.filter( outfile, self.filter )
+
 		except AssertionError:
 			logger.warn(
 				"lcov collect failed for test `%s`: %s" % (
@@ -100,6 +114,7 @@ class CCoverageCollector( Collector ):
 		except TypeError as e:
 			logger.warn( "Unable to parse lcov data: `%s`" % e )
 			return {}
+
 
 class RulestatCollector( Collector ):
 

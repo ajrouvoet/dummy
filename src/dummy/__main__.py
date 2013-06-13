@@ -202,13 +202,13 @@ if __name__ == "__main__":
 		if not hasattr( args, 'func' ): parser.print_help()
 		elif args.func == 'run':
 			from dummy.runner import run
- 			run( args )
+			run( args )
 		elif args.func == 'show':
 			from dummy.viewer import show
- 			show( args )
- 		elif args.func == 'stat':
- 			from dummy.viewer import stat
- 			stat( args )
+			show( args )
+		elif args.func == 'stat':
+			from dummy.viewer import stat
+			stat( args )
 		# elif args.func == 'quickstart': quickstart( args )
 
 	except Exception as e:
