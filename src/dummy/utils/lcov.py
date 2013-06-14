@@ -1,6 +1,6 @@
 import re
 import logging
-from subprocess import Popen, PIPE, CalledProcessError, check_call as _check_call
+from subprocess import Popen, PIPE, CalledProcessError, check_output as _check_output
 
 from dummy import config
 from dummy.utils import io
@@ -8,8 +8,8 @@ from dummy.utils import io
 __all__ = ( "parse", "baseline" )
 logger = logging.getLogger( __name__ )
 
-# alias check_call to not route to stdout
-check_call = lambda cmd: _check_call( cmd, stdout=PIPE, stderr=PIPE )
+# alias check_output to not pipe to stdout
+check_output = lambda cmd: _check_output( cmd, stderr=PIPE )
 
 class LcovError( Exception ): pass
 
@@ -180,7 +180,7 @@ def _extract( path, extract ):
 		opts.append( p )
 
 	try:
-		check_call([ 'lcov' ] + opts )
+		check_output([ 'lcov' ] + opts )
 	except CalledProcessError as e:
 		logger.debug( "Lcov reported: %s" % e.output )
 		raise LcovError( "Filtering the coverage data failed" )
@@ -194,7 +194,7 @@ def _remove( path, remove ):
 		opts.append( p )
 
 	try:
-		check_call([ 'lcov' ] + opts )
+		check_output([ 'lcov' ] + opts )
 	except CalledProcessError as e:
 		logger.debug( "Lcov reported: %s" % e.output )
 		raise LcovError( "Filtering the coverage data failed" )
@@ -220,7 +220,7 @@ def baseline( destination, srcdirs, extract=[], remove=[] ):
 		io.create_dir( destination )
 
 		# create the baseline
-		check_call([ 'lcov', '-c', '-i' ] + opts )
+		check_output([ 'lcov', '-c', '-i' ] + opts )
 
 		# apply file filtering
 		filter( destination, extract=extract, remove=remove )
@@ -241,11 +241,11 @@ def collect( destination, srcdirs, baseline=None, extract=[], remove=[] ):
 		io.create_dir( destination )
 
 		# collect the coverage
-		check_call([ 'lcov', '-c' ] + opts )
+		check_output([ 'lcov', '-c' ] + opts )
 
 		if baseline is not None:
 			# combine the data with the baseline
-			check_call([ 'lcov', '-a', baseline, '-a', destination ] + makeopts( destination ))
+			check_output([ 'lcov', '-a', baseline, '-a', destination ] + makeopts( destination ))
 
 		# finally filter the collected data
 		filter( destination, extract=extract, remove=remove )
@@ -262,7 +262,7 @@ def combine( destination, paths ):
 
 	# combine the data with the accumulated set
 	try:
-		proc = check_call([ 'lcov' ] + opts )
+		proc = check_output([ 'lcov' ] + opts )
 	except CalledProcessError as e:
 		logger.debug( "Lcov reported: %s" % e.output )
 		raise LcovError( "Combining the coverage data with lcov failed" )
@@ -275,7 +275,7 @@ def zero( srcdirs ):
 		opts += [ '-d', s ]
 
 	try:
-		check_call([ 'lcov', '-z' ] + opts )
+		check_output([ 'lcov', '-z' ] + opts )
 	except CalledProcessError as e:
 		logger.debug( "Lcov reported: %s" % e.output )
 		raise LcovError( "Could not zero the coverage counters" )
