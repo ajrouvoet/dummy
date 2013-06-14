@@ -190,7 +190,7 @@ show.add_argument(
 # quickstart = sub.add_parser( "quickstart", help="Quickly set up dummy config")
 # quickstart.set_defaults( func="quickstart" )
 
-if __name__ == "__main__":
+def main():
 	args = parser.parse_args()
 
 	# set the logging level
@@ -218,3 +218,6 @@ if __name__ == "__main__":
 			# Then enter debug mode.
 			import pdb
 			pdb.post_mortem()
+
+if __name__ == "__main__":
+	main()
