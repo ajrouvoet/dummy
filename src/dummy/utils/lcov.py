@@ -1,11 +1,17 @@
 import re
 import logging
-from subprocess import Popen, PIPE, CalledProcessError
+from subprocess import Popen, PIPE, CalledProcessError, check_call as _check_call
 
 from dummy import config
+from dummy.utils import io
 
 __all__ = ( "parse", "baseline" )
 logger = logging.getLogger( __name__ )
+
+# alias check_call to not route to stdout
+check_call = lambda cmd: _check_call( cmd, stdout=PIPE, stderr=PIPE )
+
+class LcovError( Exception ): pass
 
 class Parser:
 
@@ -153,42 +159,123 @@ class Parser:
 # alias that shit
 def parse( info ): return Parser.parse( info )
 
-def baseline( path, srcdir=config.SRC_DIR ):
+def makeopts( destination=None ):
+	opts = []
+
+	# set output
+	if destination is not None:
+		opts += [ '-o', destination ]
+
+	# specify we want branch coverage
+	opts += [ '--rc', 'lcov_branch_coverage=1' ]
+	opts += [ '--no-external' ]
+
+	return opts
+
+def _extract( path, extract ):
+	opts = makeopts( path )
+
+	opts += [ "--extract", path]
+	for p in extract:
+		opts.append( p )
+
+	try:
+		check_call([ 'lcov' ] + opts )
+	except CalledProcessError as e:
+		logger.debug( "Lcov reported: %s" % e.output )
+		raise LcovError( "Filtering the coverage data failed" )
+
+def _remove( path, remove ):
+	opts = makeopts( path )
+
+	# set removes
+	opts += [ "--remove", path ]
+	for p in remove:
+		opts.append( p )
+
+	try:
+		check_call([ 'lcov' ] + opts )
+	except CalledProcessError as e:
+		logger.debug( "Lcov reported: %s" % e.output )
+		raise LcovError( "Filtering the coverage data failed" )
+
+def filter( path, extract=[], remove=[] ):
+	if len( extract ) > 0:
+		_extract( path, extract )
+
+	if len( remove ) > 0:
+		_remove( path, remove )
+
+def baseline( destination, srcdirs, extract=[], remove=[] ):
+	assert len( srcdirs ) != 0, "Need atleast one srcdir to collect coverage from"
+	opts = makeopts( destination )
+
+	# set src
+	for s in srcdirs:
+		opts += [ '-d', s ]
+
 	# create the baseline
-	gcov = Popen(
-		[ 	'lcov', '-c', '-i',
-			'-d', srcdir,
-			'-o', path,
-			'--rc', 'lcov_branch_coverage=1',
-		], stdout=PIPE, stderr=PIPE )
-	ret = gcov.wait()
-	( out, err ) = gcov.communicate()
+	try:
+		# make sure the target dir exists
+		io.create_dir( destination )
 
-	# make sure this was succesfull
-	# or else print the error
-	assert ret == 0, "Setting the lcov baseline failed"
+		# create the baseline
+		check_call([ 'lcov', '-c', '-i' ] + opts )
 
-def filter( path, filter_list, method ):
-	assert len( filter_list ) > 0
-	METHODS = ( "include", "exclude", "extract", "remove" )
-	if method not in METHODS:
-		raise ArgumentError( "Specified method `%s` not recognized." % method )
+		# apply file filtering
+		filter( destination, extract=extract, remove=remove )
+	except CalledProcessError as e:
+		logger.debug( "Lcov reported: %s" % e.output )
+		raise LcovError( "Setting the lcov baseline failed" )
 
-	# TODO maybe this can be improved somehow
-	if method == "include":
-		operand = "extract"
-	elif method == "exclude":
-		operand = "remove"
-	else:
-		operand = method
+def collect( destination, srcdirs, baseline=None, extract=[], remove=[] ):
+	assert len( srcdirs ) != 0, "Need atleast one srcdir to collect coverage from"
+	opts = makeopts( destination )
 
-	lcovcommand = [	'lcov',
-			'-o', path,
-			'--' + operand, path ]
-	lcovcommand.extend( filter_list )
-	proc = Popen( lcovcommand, stdout = PIPE, stderr = PIPE )
+	# set src
+	for s in srcdirs:
+		opts += [ '-d', s ]
 
-	# get the output
-	out, err = proc.communicate()
-	assert proc.returncode == 0, "Lcov had a non-zero exitcode: `%s`" % err
+	try:
+		# make sure the target dir exists
+		io.create_dir( destination )
 
+		# collect the coverage
+		check_call([ 'lcov', '-c' ] + opts )
+
+		if baseline is not None:
+			# combine the data with the baseline
+			check_call([ 'lcov', '-a', baseline, '-a', destination ] + makeopts( destination ))
+
+		# finally filter the collected data
+		filter( destination, extract=extract, remove=remove )
+	except CalledProcessError as e:
+		logger.debug( "Lcov reported: %s" % e.output )
+		raise LcovError( "Collecting coverage using lcov failed" )
+
+def combine( destination, paths ):
+	opts = makeopts( destination )
+
+	# map paths to options for lcov
+	for path in paths:
+		opts += [ '-a', path ]
+
+	# combine the data with the accumulated set
+	try:
+		proc = check_call([ 'lcov' ] + opts )
+	except CalledProcessError as e:
+		logger.debug( "Lcov reported: %s" % e.output )
+		raise LcovError( "Combining the coverage data with lcov failed" )
+
+def zero( srcdirs ):
+	opts = makeopts()
+
+	# set src
+	for s in srcdirs:
+		opts += [ '-d', s ]
+
+	try:
+		check_call([ 'lcov', '-z' ] + opts )
+	except CalledProcessError as e:
+		logger.debug( "Lcov reported: %s" % e.output )
+		raise LcovError( "Could not zero the coverage counters" )
