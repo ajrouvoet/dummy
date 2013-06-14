@@ -35,22 +35,29 @@ class CCoverageCollector( Collector ):
 	BASELINE = os.path.join( config.TEMP_DIR, "coverage.baseline.info" )
 	FILENAME = "coverage.info"
 
-	def __init__( self, srcdir=config.SRC_DIR, include=None ):
+	def __init__( self, srcdir=config.SRC_DIR, **kwargs ):
 		self.srcdir = srcdir
 
-		# Filter should not be an empty list.
-		if include is not None and len( include ) == 0:
-			self.include = None
-			logger.warn( "Filter is an empty list, ignoring..." )
-		else:
-			self.include = include
+		FILTER = ( "include", "exclude", "remove", "extract" )
+		# Get the filter statements from kwargs.
+		def filter_length( key, list ):
+			if not list:
+				logger.warn( "`%s` has an empty list!" % key )
+		 	return list
+
+		self.filter_dict = { key: kwargs.pop(key) for key in FILTER \
+			if key in kwargs and filter_length( key, kwargs[key] ) }
+
+		# Make sure unexpected arguments still give an error.
+		for key in kwargs:
+ 			logger.warn( "Unqualified option given to %s: `%s`, ignoring..." \
+ 				% ( self.__class__.__name__, key ))
 
 		# create the lcov log dir
 		# and the baseline file
 		io.create_dir( CCoverageCollector.BASELINE )
 		lcov.baseline( CCoverageCollector.BASELINE, srcdir=self.srcdir )
-		if self.include is not None:
-			lcov.include( CCoverageCollector.BASELINE, self.include )
+		self.filter( CCoverageCollector.BASELINE )
 
 	def pre_test_hook( self, test ):
 		# zero the counters
@@ -90,9 +97,8 @@ class CCoverageCollector( Collector ):
 			out, err = proc.communicate()
 			assert proc.returncode == 0
 
-			# Then include for includes if necessary
-			if self.include is not None:
-				lcov.include( outfile, self.include )
+			# Then filter results according to settings.
+			self.filter( outfile )
 
 		except AssertionError:
 			logger.warn(
@@ -114,6 +120,10 @@ class CCoverageCollector( Collector ):
 		except TypeError as e:
 			logger.warn( "Unable to parse lcov data: `%s`" % e )
 			return {}
+
+	def filter( self, path ):
+		for( method, filter_list ) in self.filter_dict.iteritems():
+			lcov.filter( path, filter_list, method )
 
 
 class RulestatCollector( Collector ):

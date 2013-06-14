@@ -168,17 +168,27 @@ def baseline( path, srcdir=config.SRC_DIR ):
 	# or else print the error
 	assert ret == 0, "Setting the lcov baseline failed"
 
-def include( path, include ):
-	""" Filter the given coverage file, so that only files in 'include' are left.
-	"""
-	assert len( include ) > 0
-	
+def filter( path, filter_list, method ):
+	assert len( filter_list ) > 0
+	METHODS = ( "include", "exclude", "extract", "remove" )
+	if method not in METHODS:
+		raise ArgumentError( "Specified method `%s` not recognized." % method )
+
+	# TODO maybe this can be improved somehow
+	if method == "include":
+		operand = "extract"
+	elif method == "exclude":
+		operand = "remove"
+	else:
+		operand = method
+
 	lcovcommand = [	'lcov',
 			'-o', path,
-			'-e', path ]
-	lcovcommand.extend( include )
+			'--' + operand, path ]
+	lcovcommand.extend( filter_list )
 	proc = Popen( lcovcommand, stdout = PIPE, stderr = PIPE )
 
 	# get the output
 	out, err = proc.communicate()
 	assert proc.returncode == 0, "Lcov had a non-zero exitcode: `%s`" % err
+
