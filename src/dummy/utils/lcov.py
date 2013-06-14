@@ -184,6 +184,7 @@ def filter( path, filter_list, method ):
 
 	lcovcommand = [	'lcov',
 			'-o', path,
+			'--rc', 'lcov_branch_coverage=1',
 			'--' + operand, path ]
 	lcovcommand.extend( filter_list )
 	proc = Popen( lcovcommand, stdout = PIPE, stderr = PIPE )
