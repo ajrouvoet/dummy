@@ -9,4 +9,4 @@ then
 fi
 
 # tar that shit
-tar -cvzf "dummy-$BRANCH-$VERSION.tgz" -C src dummy
+tar -cvzf "dummy-$BRANCH-$VERSION.tgz" LICENSE README -C src dummy bin setup.py
