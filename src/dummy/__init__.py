@@ -3,6 +3,7 @@
 import os
 import sys
 import logging
+import imp
 
 logger = logging.getLogger( __name__ )
 
@@ -14,11 +15,28 @@ def get_version():
 	"""
 	return __version__
 
+def find_config():
+	cur = os.getcwd()
+
+	while True:
+		path = os.path.realpath( os.path.join( cur, "dummyconfig.py" ))
+		if os.path.exists( path ): return path
+		else:
+			nextd = os.path.realpath( os.path.join( cur, ".." ))
+			if cur == nextd: break # done
+			else: cur = nextd
+
+	# if not returned, no config found
+	raise AssertionError( "Reached root. No dummyconfig.py found" )
+
 # import the project configuration
 # if this fails we cannot proceed
 try:
-	sys.path.append( os.getcwd() )
-	import dummyconfig as userconfig
+	# operate from the root
+	# and import the dummyconfig from it
+	confpath = find_config()
+	os.chdir( os.path.dirname( confpath ))
+	userconfig = imp.load_source( 'dummyconfig', confpath )
 except ImportError as e:
 	# clearify the error a bit
 	logger.error( "Project configuration could not be imported." )
