@@ -64,7 +64,7 @@ class CCoverageCollector( Collector ):
 			)
 		except lcov.LcovError as e:
 			logger.warn(
-				"Lcov collect failed for test `%s`: %s"
+				"Lcov collection failed: `%s`" % e
 			)
 
 			# the baseline is now the resulting coverage
