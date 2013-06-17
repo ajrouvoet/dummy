@@ -61,31 +61,8 @@ class CCoverageOverviewEngine( Engine ):
 		self.collectpath = os.path.join( config.TEMP_DIR, "coverage_collect.info" )
 		self.paths = []
 
-	def run( self, *args, **kwargs ):
-		# create the baseline
-		logger.debug( "Creating coverage baseline" )
-		lcov.baseline( self.collectpath )
-
-		return super( CCoverageOverviewEngine, self ).run( *args, **kwargs )
-
 	def get_result( self ):
-		# map paths to options for lcov
-		opts = []
-
-		for path in self.paths:
-			opts += [ '-a', path ]
-
-		# combine the data with the accumulated set
-		try:
-			proc = check_call(
-				[ 'lcov', '-a', self.collectpath ] + opts + \
-				[ '-o', self.collectpath, '--rc', 'lcov_branch_coverage=1'],
-				stdout=PIPE,
-				stderr=PIPE
-			)
-		except CalledProcessError as e:
-			logger.error( "lcov aggregation failed for test `%s`" % result.test.name )
-			raise
+		lcov.combine( self.collectpath, paths=self.paths )
 
 		with open( self.collectpath ) as fh:
 			# parse the accumulated data

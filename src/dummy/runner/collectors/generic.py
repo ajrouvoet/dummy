@@ -35,76 +35,36 @@ class CCoverageCollector( Collector ):
 	BASELINE = os.path.join( config.TEMP_DIR, "coverage.baseline.info" )
 	FILENAME = "coverage.info"
 
-	def __init__( self, srcdir=config.SRC_DIR, **kwargs ):
-		self.srcdir = srcdir
+	def __init__( self, srcdirs=[ config.SRC_DIR ], extract=[], remove=[] ):
+		self.srcdirs = srcdirs
+		self.extract = extract
+		self.remove = remove
 
-		FILTER = ( "include", "exclude", "remove", "extract" )
-		# Get the filter statements from kwargs.
-		def filter_length( key, list ):
-			if not list:
-				logger.warn( "`%s` has an empty list!" % key )
-		 	return list
-
-		self.filter_dict = { key: kwargs.pop(key) for key in FILTER \
-			if key in kwargs and filter_length( key, kwargs[key] ) }
-
-		# Make sure unexpected arguments still give an error.
-		for key in kwargs:
- 			logger.warn( "Unqualified option given to %s: `%s`, ignoring..." \
- 				% ( self.__class__.__name__, key ))
-
-		# create the lcov log dir
-		# and the baseline file
-		io.create_dir( CCoverageCollector.BASELINE )
-		lcov.baseline( CCoverageCollector.BASELINE, srcdir=self.srcdir )
-		self.filter( CCoverageCollector.BASELINE )
+		# create the coverage baseline
+		lcov.baseline(
+			CCoverageCollector.BASELINE,
+			srcdirs=self.srcdirs,
+			extract=self.extract,
+			remove=self.remove
+		)
 
 	def pre_test_hook( self, test ):
 		# zero the counters
-		try:
-			check_call([
-				'lcov', '-z',
-				'-d', self.srcdir
-			], stdout=PIPE, stderr=PIPE )
-		except CalledProcessError as e:
-			logger.error( "Could not zero the coverage counters" )
-			raise
+		lcov.zero( srcdirs=self.srcdirs )
 
 	def collect( self, test ):
+		# run lcov to get the test coverage file
+		outfile = os.path.join( test.env()[ 'RESULTS_DIR' ], CCoverageCollector.FILENAME )
+
+		# create the coverage
 		try:
-			# run lcov to get the test coverage file
-			outfile = os.path.join( test.env()[ 'RESULTS_DIR' ], CCoverageCollector.FILENAME )
-			io.create_dir( outfile )
-			proc = Popen([ 'lcov', '-c',
-				'-d', self.srcdir,
-				'-b', self.srcdir,
-				'-o', outfile,
-				'--rc', 'lcov_branch_coverage=1',
-			], stdout=PIPE, stderr=PIPE )
-
-			# let's get the output
-			out, err = proc.communicate()
-			assert proc.returncode == 0
-
-			# combine the data with the baseline
-			proc = Popen([ 'lcov',
-				'-a', CCoverageCollector.BASELINE,
-				'-a', outfile,
-				'-o', outfile,
-				'--rc', 'lcov_branch_coverage=1',
-			], stdout=PIPE, stderr=PIPE )
-
-			out, err = proc.communicate()
-			assert proc.returncode == 0
-
-			# Then filter results according to settings.
-			self.filter( outfile )
-
-		except AssertionError:
+			lcov.collect( outfile, self.srcdirs, CCoverageCollector.BASELINE,
+				extract=self.extract,
+				remove=self.remove
+			)
+		except lcov.LcovError as e:
 			logger.warn(
-				"lcov collect failed for test `%s`: %s" % (
-					test.name, err.decode( config.INPUT_ENCODING ).strip()
-				)
+				"Lcov collect failed for test `%s`: %s"
 			)
 
 			# the baseline is now the resulting coverage
@@ -120,11 +80,6 @@ class CCoverageCollector( Collector ):
 		except TypeError as e:
 			logger.warn( "Unable to parse lcov data: `%s`" % e )
 			return {}
-
-	def filter( self, path ):
-		for( method, filter_list ) in self.filter_dict.iteritems():
-			lcov.filter( path, filter_list, method )
-
 
 class RulestatCollector( Collector ):
 
