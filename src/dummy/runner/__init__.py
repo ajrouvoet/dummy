@@ -139,7 +139,7 @@ class Runner:
 				pass
 
 			logger.info( 80*"-" )
-	
+
 	def _store_result( self, result ):
 		JsonStorageProvider( result ).store()
 
@@ -156,7 +156,7 @@ class Runner:
 
 		# After moving all the results files from the temp_result_dir, delete it.
 		logger.debug( "Removing temporary result directory: `%s`." % temp_result_dir )
-		shutil.rmtree( temp_result_dir )
+		shutil.rmtree( temp_result_dir, ignore_errors=True )
 
 	def _store( self ):
 		for result in self.results:
