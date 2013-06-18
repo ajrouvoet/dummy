@@ -168,7 +168,9 @@ def makeopts( destination=None ):
 
 	# specify we want branch coverage
 	opts += [ '--rc', 'lcov_branch_coverage=1' ]
-	opts += [ '--no-external' ]
+	# this does not work if gcno files are generated in another dir
+	# then the obj files, which is true for setups that move obj files
+	# opts += [ '--no-external' ]
 
 	return opts
 
@@ -241,6 +243,7 @@ def collect( destination, srcdirs, baseline=None, extract=[], remove=[] ):
 		io.create_dir( destination )
 
 		# collect the coverage
+		logger.debug([ 'lcov', '-c' ] + opts )
 		check_output([ 'lcov', '-c' ] + opts )
 
 		if baseline is not None:
@@ -259,6 +262,7 @@ def combine( destination, paths ):
 	# map paths to options for lcov
 	for path in paths:
 		opts += [ '-a', path ]
+	logger.debug([ 'lcov' ] + opts )
 
 	# combine the data with the accumulated set
 	try:
