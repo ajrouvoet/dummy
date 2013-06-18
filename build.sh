@@ -8,5 +8,12 @@ then
 	VERSION=`git describe --always`
 fi
 
+# mv that shit to a toplevel dir
+mkdir -p "build/dummy"
+cp -r src/dummy src/setup.py LICENSE README build/dummy/
+
 # tar that shit
-tar -cvzf "dummy-$BRANCH-$VERSION.tgz" LICENSE README -C src dummy bin setup.py
+tar -cvzf "dummy-$BRANCH-$VERSION.tgz" -C build dummy
+
+# rm the build
+rm -r build
