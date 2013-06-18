@@ -16,7 +16,7 @@ logger = logging.getLogger( __name__ )
 class GrepCollector( Collector ):
 
 	def __init__( self, statusses, default=None ):
-		super( StatusCollector, self ).__init__( type="value" )
+		super( GrepCollector, self ).__init__( type="value" )
 
 		self.statusses = statusses
 		self.default = default
@@ -123,7 +123,7 @@ class RulestatCollector( Collector ):
 		parsed = kv_colon.parse( out )
 
 		# interpret the values as integers
- 		return { key: int( value ) for key, value in parsed.items() }
+		return { key: int( value ) for key, value in parsed.items() }
 
 class ScriptCollector( Collector ):
 	""" A class for running collector scripts.

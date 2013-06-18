@@ -17,6 +17,12 @@ setup(
     ],
 	packages=[
     	'dummy',
+		'dummy.runner',
+		'dummy.runner.collectors',
+		'dummy.statistics',
+		'dummy.utils',
+		'dummy.viewer',
+		'dummy.viewer.formatting',
     ],
 	scripts = [
     	'bin/dummy',
