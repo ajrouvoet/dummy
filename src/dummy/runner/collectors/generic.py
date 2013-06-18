@@ -13,22 +13,31 @@ from dummy.utils import lcov, io, git, kv_colon, subp
 # don't show debug message per default
 logger = logging.getLogger( __name__ )
 
-class PassFailCollector( Collector ):
+class GrepCollector( Collector ):
+
+	def __init__( self, statusses, default=None ):
+		super( StatusCollector, self ).__init__( type="value" )
+
+		self.statusses = statusses
+		self.default = default
+
+	def collect( self, test ):
+		# try to grep one of the status greps
+		with open( test.log_path(), 'r' ) as log:
+			for line in log:
+				for grep, status in self.statusses.items():
+					if grep in line: return status
+
+		return self.default
+
+class PassFailCollector( GrepCollector ):
 	""" A class for Pass/Fail collecting
 	"""
 
 	def __init__( self ):
-		super( PassFailCollector, self ).__init__( type="value" )
-
-	def collect( self, test ):
-		# mimic script
-		result = 'FAIL'
-		with open( test.log_path(), 'r' ) as log:
-			for line in log:
-				if 'PASS' in line:
-					result = 'PASS'
-
-		return self.parse_output( result )
+		super( PassFailCollector, self ).__init__({
+			'PASS':	'PASS'
+		}, default="FAIL" )
 
 class CCoverageCollector( Collector ):
 
