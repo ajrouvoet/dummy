@@ -45,16 +45,19 @@ class IndentLoggingFormatter( logging.Formatter ):
 logformatter = IndentLoggingFormatter( indent=colored( "|   ", "grey" ))
 ch.setFormatter( logformatter )
 
-class LogFormatter( Formatter ):
-	""" The LogFormatter outputs TestResults to the logger.
+class AbstractLogFormatter( Formatter ):
+	""" The AbstractLogFormatter outputs dicts to the logger.
 	"""
 
-	def format( self, entry ):
-		title = colored( self.title.format( **entry ), 'green' )
+	def __init__( self, title, *args, **kwargs ):
+		super( Formatter, self ).__init__( *args, **kwargs )
 
-		printer.info( len( title ) * "-" )
-		printer.info( title )
-		printer.info( len( title ) * "-" )
+		self.title = title
+
+	def format_entry( self, entry ):
+		printer.info( len( self.title ) * "-" )
+		printer.info( colored( self.title, 'green' ))
+		printer.info( len( self.title ) * "-" )
 		logformatter.indent()
 
 		self._format_body( entry )
@@ -71,3 +74,15 @@ class LogFormatter( Formatter ):
 				logformatter.unindent()
 			else:
 				printer.info( colored( key, 'white' ) + ": %s" % value )
+
+class LogFormatter( AbstractLogFormatter ):
+	""" The LogFormatter outputs TestResults to the logger.
+	"""
+
+	def __init__( self ):
+		super( LogFormatter, self ).__init__( title="" )
+
+	def format_entry( self, result ):
+		self.title = "%s (%s)" % ( result[ 'name' ], result[ 'commit' ])
+
+		super( LogFormatter, self ).format_entry( result )

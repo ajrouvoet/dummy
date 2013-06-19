@@ -3,7 +3,7 @@ import logging
 from dummy import config
 from dummy.utils import git, argparser
 from dummy.storage import JsonStorageProvider
-from dummy.viewer.formatting import LogFormatter
+from dummy.viewer.formatting import AbstractLogFormatter, LogFormatter
 from dummy.statistics import Statistic
 
 logger = logging.getLogger( __name__ )
@@ -42,32 +42,8 @@ class ResultManager:
 
 			:raises AssertionError: When the method is not supported.
 		"""
-		# serialise the results
-		results = [ s.serialize() for s in self.results ]
-
-		# filter the metrics
-		for s in results:
-			# Format metrics
-			# If no metrics given, format all metrics
-			# Note: You cannot do metrics = testresult.metrics, because of th next loop.
-			if len( metrics ) == 0:
-				dometrics = s[ 'metrics' ].keys()
-			else:
-				dometrics = metrics
-
-			s[ 'metrics' ] = {
-				key: value
-				for ( key, value ) in s[ 'metrics' ].items()
-				if key in dometrics
-			}
-
 		# format the results using the selected formatter
-		concat = []
-		f = formatter( title="{name} ({commit})" )
-		for s in results:
-			concat.append( f.format( s ))
-
-		return concat
+		return formatter().format_results( self.results, *metrics )
 
 def _parse_results( args ):
 	# discover the commit
@@ -114,9 +90,8 @@ def stat( args ):
 		logger.info( "No statistics given, using all configured statistics" )
 		stat_names = config.STATISTICS.keys()
 
+	logger.info( "Loading statistics: %s" % stat_names )
 	for name in stat_names:
-		logger.info( "Loading statistics: `%s`." % stat_names )
-
 		logger.debug( "Loading statistic `%s`" % name )
 		stat = config.STATISTICS.get( name )
 
@@ -130,5 +105,5 @@ def stat( args ):
 
 	# format the stats
 	for name, stat in stats.items():
-		formatter = LogFormatter( title=name )
-		formatter.format( stat )
+		formatter = AbstractLogFormatter( title=name )
+		formatter.format_entry( stat )
