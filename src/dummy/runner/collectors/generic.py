@@ -13,6 +13,23 @@ from dummy.utils import lcov, io, git, kv_colon, subp
 # don't show debug message per default
 logger = logging.getLogger( __name__ )
 
+class LogCollector( Collector ):
+
+	FILENAME = "run.log"
+
+	def collect( self, test ):
+		# output file
+		outfile = os.path.join( test.env()[ 'RESULTS_DIR' ], LogCollector.FILENAME )
+		io.create_dir( outfile )
+
+		try:
+			shutil.copy( test.log_path(), outfile )
+		except IOError as e:
+			logger.error( "Failed to copy the log file to the test results" )
+			logger.debug( "OS reported: %s" % str( e ))
+
+		return None
+
 class GrepCollector( Collector ):
 
 	def __init__( self, statusses, default=None ):
