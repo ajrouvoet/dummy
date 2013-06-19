@@ -1,4 +1,18 @@
-class Formatter( object ):
+class ResultFormatter( object ):
+
+	def format_results( self, results ):
+		for r in results:
+			self.format_entry( r )
+
+	def format_entry( self, entry ):
+		""" Format a single entry according to Formatter implementation.
+		"""
+		raise NotImplementedError( "Not implemented" )
+
+	def format( self, entries ):
+		raise NotImplementedError( "This formatter can only be used to format TestResults" )
+
+class Formatter( ResultFormatter ):
 	""" A Formatter outputs dicts in a certain format.
 	"""
 
@@ -38,20 +52,6 @@ class Formatter( object ):
 				concat.append( formatted )
 
 		return concat
-
-	def format_entry( self, entry ):
-		""" Format a single entry according to Formatter implementation.
-		"""
-		raise NotImplementedError( "Not implemented" )
-
-class ResultFormatter( Formatter ):
-
-	def format_results( self, results ):
-		for r in results:
-			self.format_entry( r )
-
-	def format( self, entries ):
-		raise NotImplementedError( "This formatter can only be used to format TestResults" )
 
 from dummy.viewer.formatting.streamformatters import *
 from dummy.viewer.formatting.plotformatters import *
