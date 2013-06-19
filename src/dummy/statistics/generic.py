@@ -1,6 +1,7 @@
 import os
 import glob
 import logging
+import datetime
 from subprocess import check_call, PIPE, CalledProcessError
 
 from dummy.statistics import Engine
@@ -53,6 +54,32 @@ class KeyValueCountEngine( Engine ):
 			logger.error( "Badly formatted rulestat result file." )
 			raise
 
+class TimerEngine( Engine ):
+
+	def __init__( self ):
+		super( TimerEngine, self ).__init__( metric=None )
+
+		self.first = None
+		self.last = None
+		self.duration = datetime.timedelta( seconds=0 )
+
+	def get_result( self ):
+		return {
+			'started': self.first,
+			'ended': self.last,
+			'duration (test runtime)': self.duration,
+			'duration (ended - started)': self.last - self.first
+		}
+
+	def process( self, result ):
+		if self.first is None or result.started < self.first:
+			self.first = result.started
+
+		if self.last is None or result.completed > self.last:
+			self.last = result.completed
+
+		self.duration = self.duration + ( result.completed - result.started )
+
 class ConditionalFrequencyEngine( Engine ):
 	""" Computes frequency of metric2=E output based on metric1=R value.
 	"""
@@ -63,7 +90,7 @@ class ConditionalFrequencyEngine( Engine ):
 		self.metric2 = metric2
 		self.metric2_value = metric2_value
 		self.preformat = preformat
-	
+
 	def run( self, results ):
 		matches={}
 		totals={}
