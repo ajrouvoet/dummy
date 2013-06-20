@@ -78,6 +78,13 @@ runner.add_argument(
 	action="store_true"
 )
 runner.add_argument(
+	'-x',
+	'--exclude',
+	help="Exclude a test to be run",
+	action="append",
+	default=[]
+)
+runner.add_argument(
 	'-t',
 	'--target',
 	help="Run a specific target",
@@ -132,6 +139,13 @@ stat.add_argument(
 	action="store"
 )
 stat.add_argument(
+	'-x',
+	'--exclude',
+	help="Exclude a test result",
+	action="append",
+	default=[]
+)
+stat.add_argument(
 	'-s',
 	'--stat',
 	help="Calculate the named stat",
@@ -150,6 +164,13 @@ show.add_argument(
 	'-S',
 	'--suite',
 	help="names of the suites to inspect",
+	action="append",
+	default=[]
+)
+show.add_argument(
+	'-x',
+	'--exclude',
+	help="Exclude a test result",
 	action="append",
 	default=[]
 )

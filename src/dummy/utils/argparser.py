@@ -41,7 +41,15 @@ def discover_tests( args ):
 	# queue the named tests
 	for names in [ Test.glob( name ) for name in args.tests ]:
 		for name in names:
-			tests.append( Test( name ))
+				tests.append( Test( name ))
+
+	# expand excludes using globbing
+	excludes = []
+	for ex in args.exclude:
+		excludes += Test.glob( ex )
+
+	# unqueue excluded tests
+	tests = [ t for t in tests if t.name not in excludes ]
 
 	# unqueue tests that already have results
 	# if complement option is given
