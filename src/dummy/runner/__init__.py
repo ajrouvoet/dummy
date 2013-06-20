@@ -182,4 +182,4 @@ def run( args ):
 		logger.info( "Running tests for target `%s` [%d/%d]" % ( t, i, len( targets )))
 		logger.info( 80*"=" )
 
-		runner.run( store=args.store, target=t, commit=args.commit )
+		runner.run( store=(not args.dryrun), target=t, commit=args.commit )

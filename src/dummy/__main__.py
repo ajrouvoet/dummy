@@ -72,9 +72,9 @@ runner.add_argument(
 	action="store_true"
 )
 runner.add_argument(
-	'-s',
-	'--store',
-	help="Store the test results",
+	'-n',
+	'--dryrun',
+	help="Prevent storage of the test results",
 	action="store_true"
 )
 runner.add_argument(
