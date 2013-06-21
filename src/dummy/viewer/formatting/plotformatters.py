@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger( __name__ )
 
 try:
-	import pylabs
+	import pylab
 
 	class PlotFormatter( ResultFormatter ):
 
