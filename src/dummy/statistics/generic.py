@@ -22,6 +22,15 @@ class CountEngine( Engine ):
 		}
 
 	def get_result( self ):
+		# calculate percentages
+		# yeah this is valid
+		total = self.bars.get( 'total', 1 )
+
+		self.bars = {
+			key: { '#': value, '%': ( float( value )/ total ) * 100 }
+			for key, value in self.bars.items()
+		}
+
 		return self.bars
 
 	def process( self, data ):
