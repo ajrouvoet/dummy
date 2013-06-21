@@ -3,7 +3,7 @@ import logging
 from dummy import config
 from dummy.utils import git, argparser
 from dummy.storage import JsonStorageProvider
-from dummy.viewer.formatting import AbstractLogFormatter, LogFormatter
+from dummy.viewer.formatting import LogFormatter
 from dummy.statistics import Statistic
 
 logger = logging.getLogger( __name__ )
@@ -70,6 +70,10 @@ def show( args ):
 	if args.plot:
 		from dummy.viewer.formatting import PlotFormatter
 		formatter = PlotFormatter
+	elif hasattr( args, 'format' ):
+		# try to find a formatter with that name
+		from dummy.viewer.formatting import Formatter
+		formatter = Formatter.get( args.format )
 	else:
 		from dummy.viewer.formatting import LogFormatter
 		formatter = LogFormatter
@@ -104,6 +108,5 @@ def stat( args ):
 		stats[ name ] = s.gather( manager.results )
 
 	# format the stats
-	for name, stat in stats.items():
-		formatter = AbstractLogFormatter( title=name )
-		formatter.format_entry( stat )
+	formatter = LogFormatter()
+	formatter.format( stats )

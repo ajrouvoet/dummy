@@ -1,4 +1,4 @@
-from dummy.viewer.formatting import ResultFormatter
+from dummy.viewer.formatting import ResultFormatter, Formatter
 import logging
 
 logger = logging.getLogger( __name__ )
@@ -6,6 +6,7 @@ logger = logging.getLogger( __name__ )
 try:
 	import pylab
 
+	@Formatter.register( 'plot' )
 	class PlotFormatter( ResultFormatter ):
 
 		def __init__( self, *args, **kwargs ):
@@ -56,6 +57,7 @@ try:
 				)
 except ImportError:
 
+	@Formatter.register( 'plot' )
 	class PlotFormatter():
 
 		def __init__( self, *args, **kwargs ):

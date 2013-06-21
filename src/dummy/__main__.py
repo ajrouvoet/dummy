@@ -203,8 +203,13 @@ show.add_argument(
 show.add_argument(
 	'-p',
 	'--plot',
-	help="Show results in a plot",
+	help="Show results in a plot (shortcut for --format=plot)",
 	action="store_true"
+)
+show.add_argument(
+	'--format',
+	help="Specify the formatter for the results",
+	action="store"
 )
 
 # `dummy quickstart`
@@ -236,9 +241,11 @@ def main():
 		logging.getLogger( 'dummy' ).critical( str( e ))
 		# to trace or not to trace
 		if args.debug:
+			raise
+
 			# Then enter debug mode.
-			import pdb
-			pdb.post_mortem()
+			# import pdb
+			# pdb.post_mortem()
 
 if __name__ == "__main__":
 	main()

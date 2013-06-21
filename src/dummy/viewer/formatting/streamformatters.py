@@ -1,7 +1,8 @@
 import logging
 import sys
 
-from dummy.viewer.formatting import Formatter
+from dummy.viewer.formatting import Formatter, register
+from dummy.utils import Printer
 from termcolor import colored
 
 __ALL__ = ( "LogFormatter" )
@@ -19,53 +20,40 @@ printer.setLevel( logging.INFO )
 ch = logging.StreamHandler( sys.stdout )
 printer.addHandler( ch )
 
-class IndentLoggingFormatter( logging.Formatter ):
+class IndentLoggingFormatter( Printer, logging.Formatter ):
 
 	INDENT = "|   "
 
 	def __init__( self, indent=INDENT, *args, **kwargs ):
-		super( IndentLoggingFormatter, self ).__init__( *args, **kwargs )
-
-		self.indentation = 0
-		self._indentstr = indent
-
-	def indent( self ): self.indentation += 1
-	def unindent( self ):
-		if self.indentation > 0:
-			self.indentation -= 1
+		logging.Formatter.__init__( self, *args, **kwargs )
+		Printer.__init__( self, indent=indent )
 
 	def format( self, record ):
-		message = []
-
-		for line in record.getMessage().splitlines():
-			message.append( self.indentation * self._indentstr + line )
-
-		return "\n".join( message )
+		return self.msg( record.getMessage() )
 
 logformatter = IndentLoggingFormatter( indent=colored( "|   ", "grey" ))
 ch.setFormatter( logformatter )
 
-class AbstractLogFormatter( Formatter ):
-	""" The AbstractLogFormatter outputs dicts to the logger.
+@register( 'log' )
+class LogFormatter( Formatter ):
+	""" The LogFormatter outputs dicts to the logger.
 	"""
 
-	def __init__( self, title, *args, **kwargs ):
-		super( Formatter, self ).__init__( *args, **kwargs )
+	def format( self, items ):
+		# homogenize list entries to dict
+		if type( items ) == list:
+			items = dict(( "item %d" % d, val ) for d, val in enumerate( items ))
 
-		self.title = title
+		for title, entry in items.items():
+			printer.info( len( title ) * "-" )
+			printer.info( colored( title, 'green' ))
+			printer.info( len( title ) * "-" )
+
+			logformatter.indent()
+			self.format_entry( entry )
+			logformatter.unindent()
 
 	def format_entry( self, entry ):
-		printer.info( len( self.title ) * "-" )
-		printer.info( colored( self.title, 'green' ))
-		printer.info( len( self.title ) * "-" )
-		logformatter.indent()
-
-		self._format_body( entry )
-
-		# go back to original indentation
-		logformatter.unindent()
-
-	def _format_body( self, entry ):
 		# homogenize entry to dict
 		if type( entry ) == list:
 			entry = dict( enumerate( entry ))
@@ -74,19 +62,7 @@ class AbstractLogFormatter( Formatter ):
 			if type( value ) in ( list, dict ):
 				printer.info( colored( "+ ", 'white' ) + colored( key, 'green' ) + ":" )
 				logformatter.indent()
-				self._format_body( value )
+				self.format_entry( value )
 				logformatter.unindent()
 			else:
 				printer.info( colored( key, 'white' ) + ": %s" % value )
-
-class LogFormatter( AbstractLogFormatter ):
-	""" The LogFormatter outputs TestResults to the logger.
-	"""
-
-	def __init__( self ):
-		super( LogFormatter, self ).__init__( title="" )
-
-	def format_entry( self, result ):
-		self.title = "%s (%s)" % ( result[ 'name' ], result[ 'commit' ])
-
-		super( LogFormatter, self ).format_entry( result )
