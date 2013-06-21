@@ -1,5 +1,8 @@
 class ResultFormatter( object ):
 
+	def __init__( self, *args, **kwargs ):
+		pass
+
 	def format_results( self, results ):
 		for r in results:
 			self.format_entry( r )
@@ -15,9 +18,6 @@ class ResultFormatter( object ):
 class Formatter( ResultFormatter ):
 	""" A Formatter outputs dicts in a certain format.
 	"""
-
-	def __init__( self, *args, **kwargs ):
-		pass
 
 	def format_results( self, results, *metrics ):
 		# per default we serialize the results as dicts

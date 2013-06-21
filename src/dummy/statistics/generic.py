@@ -41,6 +41,19 @@ class CountEngine( Engine ):
 
 		self.bars[ 'total' ] += 1
 
+class FindEngine( Engine ):
+
+	def __init__( self, condition=( lambda x: x )):
+		super( FindEngine, self ).__init__()
+
+		self.tests = []
+		self.condition = condition
+
+	def run( self, results ):
+		return {
+			'tests': [ result.test.name for result in filter( self.condition, results )]
+		}
+
 class KeyValueCountEngine( Engine ):
 
 	def __init__( self, metric ):

@@ -66,8 +66,12 @@ class AbstractLogFormatter( Formatter ):
 		logformatter.unindent()
 
 	def _format_body( self, entry ):
+		# homogenize entry to dict
+		if type( entry ) == list:
+			entry = dict( enumerate( entry ))
+
 		for key, value in sorted( entry.items() ):
-			if type( value ) == dict:
+			if type( value ) in ( list, dict ):
 				printer.info( colored( "+ ", 'white' ) + colored( key, 'green' ) + ":" )
 				logformatter.indent()
 				self._format_body( value )
