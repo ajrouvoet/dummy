@@ -9,6 +9,7 @@ def checkout( committish, paths=[] ):
 
 		args:
 			committish {str} git commit indicator (hash/tag/branch/etc)
+			paths: If given, only these paths will be checked out. 
 
 		kwargs:
 			files {list<str>} paths to checkout, defaults to all in repo

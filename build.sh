@@ -10,7 +10,7 @@ fi
 
 # mv that shit to a toplevel dir
 mkdir -p "build/dummy"
-cp -r src/dummy src/setup.py LICENSE README build/dummy/
+cp -r src/dummy src/setup.py LICENSE readme.md build/dummy/
 
 # tar that shit
 tar -cvzf "dummy-$BRANCH-$VERSION.tgz" -C build dummy
