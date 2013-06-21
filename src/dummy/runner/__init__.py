@@ -78,9 +78,9 @@ class Runner:
 				if current == "HEAD":
 					current = git.describe()
 
-				logger.warning( "Checking out commit `%s`" % args.commit )
-				git.checkout( args.commit )
-				git.checkout( current, paths=config.TESTS_DIR )
+				logger.warning( "Checking out commit `%s`" % commit )
+				git.checkout( commit )
+				git.checkout( current, paths=[ config.TESTS_DIR ])
 
 			# actual running of the tests
 			self._run_tests( target=target, store=store )
