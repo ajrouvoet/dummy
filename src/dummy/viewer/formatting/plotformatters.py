@@ -5,6 +5,7 @@ logger = logging.getLogger( __name__ )
 
 try:
 	import pylab
+	import numpy
 
 	@Formatter.register( 'plot' )
 	class PlotFormatter( ResultFormatter ):
@@ -12,12 +13,22 @@ try:
 		def __init__( self, *args, **kwargs ):
 			super( PlotFormatter, self ).__init__( self, *args, **kwargs )
 
+			# create the figure
+			self.figure = pylab.figure( facecolor='white' )
+
 		def format_results( self, results, *metrics ):
 			assert len( results ) > 0, "No results to format"
 
-			# create the figure
-			fig = pylab.figure( facecolor='white' )
+			self.setup( results )
 
+			try:
+				self.plot( results, metrics )
+			except ( ValueError, TypeError ) as e:
+				raise Exception(
+					"Non numeric metrics cannot be plotted"
+				)
+
+		def setup( self, results ):
 			# get the xlabels
 			x = range( 1, len( results ) + 1 )
 			xlabels = [ r.test.name for r in results ]
@@ -29,20 +40,24 @@ try:
 			pylab.margins( 0.05 )
 			pylab.xticks( x, xlabels )
 
+		def plot( self, results, metrics, **opts ):
 			# create the plots
+			plots = []
 			for metric in metrics:
-				self.format_metric( results, metric )
+				plots.append( self.plot_metric( results, metric , **opts ))
+
+			# legendary
+			pylab.legend([ p[0] for p in plots], metrics )
 
 			# and show it
-			pylab.legend()
 			pylab.show()
 
-		def format_metric( self, results, metric ):
+		def plot_metric( self, results, metric, **opts ):
 			x = range( 1, len( results ) + 1 )
 			y = [ t.get_metric( metric ) for t in results ]
 
 			try:
-				plot = pylab.plot( x, y )
+				plot = pylab.plot( x, y, **opts )
 				pylab.setp( plot,
 					label=metric,
 					linestyle='dashed',
@@ -51,16 +66,44 @@ try:
 					markersize=12.0,
 					aa=True
 				)
+
+				return plot
 			except ( ValueError, TypeError ) as e:
 				raise Exception(
 					"The metric `%s` is not numeric and can thus not be plotted." % metric
 				)
+
+	@Formatter.register( 'plot.bar' )
+	class BarPlotFormatter( PlotFormatter ):
+
+		def plot( self, results, metrics, **opts ):
+			# create the plots
+			plots = []
+			x = numpy.arange( len( results ))
+			margin = 0.1 / len( metrics )
+			width = min( 0.5, 0.8 / len( metrics ))
+			colors = [
+				( i/( 2 * len( metrics )), i/len(metrics), 0.8 )
+				for i in range( 1, len( metrics ) + 1)
+			]
+
+			for i, metric in enumerate( metrics ):
+				# compute the bar heights
+				y = [ t.get_metric( metric ) for t in results ]
+
+				plot = pylab.bar( x + i*width + i*margin, y, width=width, color=colors[i] )
+				plots.append( plot )
+
+				pylab.setp( plot,
+					label=metric,
+					aa=True
+				)
+
+			# legendary
+			pylab.legend([ p[0] for p in plots], metrics )
+
+			# and show it
+			pylab.show()
+
 except ImportError:
-
-	@Formatter.register( 'plot' )
-	class PlotFormatter():
-
-		def __init__( self, *args, **kwargs ):
-			raise ImportError( "PlotFormatter is not available. matplotlib is not installed" )
-
 	logger.debug( "matplotlib is not installed, PlotFormatter not available." )
