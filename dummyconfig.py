@@ -2,17 +2,20 @@ import os
 import sys
 
 ROOT = os.path.dirname( __file__ )
-TEST_RUNNER = 'tests/run.sh'
+TEST_RUNNER = 'tests/system_tests/run.sh'
 
 ENV = {
 }
 
 SUITES = {
-	'all': [
-		'pass',
-		'fail',
-		'exitcode/*',
+	'system': [
+		'system_tests/pass',
+		'system_tests/fail',
+		'system_tests/exitcode/*',
 	],
+	'unit': [
+		'unit_tests/models',
+	]
 }
 
 METRICS = {
@@ -31,6 +34,18 @@ METRICS = {
 	},
 }
 
+UNIT_METRICS = {
+	'pass/fail' : {
+		'collector': 'dummy.honeypot.GrepCollector',
+		'kwargs': {
+			'statusses': {
+				'OK': "PASS",
+			}
+		},
+		'default' : "FAIL",
+	}
+}
+
 STATISTICS = {
 	'passing': {
 		'engine': 'dummy.honeypot.CountEngine',
@@ -41,4 +56,8 @@ STATISTICS = {
 }
 
 TARGETS = {
+	'unit': {
+		'TEST_RUNNER': 'tests/unit_tests/run.sh',
+		'METRICS': UNIT_METRICS,
+	}
 }
