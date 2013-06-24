@@ -61,17 +61,25 @@ class CCoverageCollector( Collector ):
 	BASELINE = os.path.join( config.TEMP_DIR, "coverage.baseline.info" )
 	FILENAME = "coverage.info"
 
-	def __init__( self, srcdirs=[ config.SRC_DIR ], extract=[], remove=[] ):
+	def __init__( self, srcdirs=[ config.SRC_DIR ],
+				extract=[],
+				remove=[],
+				branch_coverage=False):
 		self.srcdirs = srcdirs
 		self.extract = extract
 		self.remove = remove
+
+		# Turn branch coverage collection on or off.
+		logger.debug( "Branch coverage is %s" % ( "off","on" )[ branch_coverage ])
+		self.branch_coverage = branch_coverage
 
 		# create the coverage baseline
 		lcov.baseline(
 			CCoverageCollector.BASELINE,
 			srcdirs=self.srcdirs,
 			extract=self.extract,
-			remove=self.remove
+			remove=self.remove,
+			branch_coverage=self.branch_coverage
 		)
 
 	def pre_test_hook( self, test ):
@@ -86,7 +94,8 @@ class CCoverageCollector( Collector ):
 		try:
 			lcov.collect( outfile, self.srcdirs, CCoverageCollector.BASELINE,
 				extract=self.extract,
-				remove=self.remove
+				remove=self.remove,
+				branch_coverage=self.branch_coverage
 			)
 		except lcov.LcovError as e:
 			logger.warn(
@@ -102,7 +111,7 @@ class CCoverageCollector( Collector ):
 			out = fh.read()
 
 		try:
-			return lcov.parse( out )
+			return lcov.parse( out, self.branch_coverage )
 		except TypeError as e:
 			logger.warn( "Unable to parse lcov data: `%s`" % e )
 			return {}

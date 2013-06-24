@@ -159,7 +159,7 @@ class Parser:
 # alias that shit
 def parse( info ): return Parser.parse( info )
 
-def makeopts( destination=None ):
+def makeopts( destination=None, branch_coverage=False ):
 	opts = []
 
 	# set output
@@ -167,15 +167,16 @@ def makeopts( destination=None ):
 		opts += [ '-o', destination ]
 
 	# specify we want branch coverage
-	opts += [ '--rc', 'lcov_branch_coverage=1' ]
+	if branch_coverage:
+		opts += [ '--rc', 'lcov_branch_coverage=1' ]
 	# this does not work if gcno files are generated in another dir
 	# then the obj files, which is true for setups that move obj files
 	# opts += [ '--no-external' ]
 
 	return opts
 
-def _extract( path, extract ):
-	opts = makeopts( path )
+def _extract( path, extract, branch_coverage=False):
+	opts = makeopts( path, branch_coverage )
 
 	opts += [ "--extract", path]
 	for p in extract:
@@ -187,8 +188,8 @@ def _extract( path, extract ):
 		logger.debug( "Lcov reported: %s" % e.output )
 		raise LcovError( "Filtering the coverage data failed" )
 
-def _remove( path, remove ):
-	opts = makeopts( path )
+def _remove( path, remove, branch_coverage=False ):
+	opts = makeopts( path, branch_coverage )
 
 	# set removes
 	opts += [ "--remove", path ]
@@ -208,9 +209,9 @@ def filter( path, extract=[], remove=[] ):
 	if len( remove ) > 0:
 		_remove( path, remove )
 
-def baseline( destination, srcdirs, extract=[], remove=[] ):
+def baseline( destination, srcdirs, extract=[], remove=[], branch_coverage=False ):
 	assert len( srcdirs ) != 0, "Need atleast one srcdir to collect coverage from"
-	opts = makeopts( destination )
+	opts = makeopts( destination, branch_coverage )
 
 	# set src
 	for s in srcdirs:
@@ -230,9 +231,9 @@ def baseline( destination, srcdirs, extract=[], remove=[] ):
 		logger.debug( "Lcov reported: %s" % e.output )
 		raise LcovError( "Setting the lcov baseline failed" )
 
-def collect( destination, srcdirs, baseline=None, extract=[], remove=[] ):
+def collect( destination, srcdirs, baseline=None, extract=[], remove=[], branch_coverage=False ):
 	assert len( srcdirs ) != 0, "Need atleast one srcdir to collect coverage from"
-	opts = makeopts( destination )
+	opts = makeopts( destination, branch_coverage )
 
 	# set src
 	for s in srcdirs:
@@ -248,7 +249,7 @@ def collect( destination, srcdirs, baseline=None, extract=[], remove=[] ):
 
 		if baseline is not None:
 			# combine the data with the baseline
-			check_output([ 'lcov', '-a', baseline, '-a', destination ] + makeopts( destination ))
+			check_output([ 'lcov', '-a', baseline, '-a', destination ] + makeopts( destination, branch_coverage ))
 
 		# finally filter the collected data
 		filter( destination, extract=extract, remove=remove )
@@ -256,8 +257,8 @@ def collect( destination, srcdirs, baseline=None, extract=[], remove=[] ):
 		logger.debug( "Lcov reported: %s" % e.output )
 		raise LcovError( "Collecting coverage using lcov failed" )
 
-def combine( destination, paths ):
-	opts = makeopts( destination )
+def combine( destination, paths, branch_coverage=False ):
+	opts = makeopts( destination, branch_coverage )
 
 	# map paths to options for lcov
 	for path in paths:
