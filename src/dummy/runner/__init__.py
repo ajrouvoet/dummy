@@ -125,18 +125,19 @@ class Runner:
 			try:
 				result = test.run( target=target, metrics=self.metrics.values() )
 				self.results.append( result )
+
+				# store the results
+				if store:
+					self._store_result( result )
+					logger.info( "Stored results!" )
+				else:
+					# TODO
+					# ask the user if he wants to store the results
+					pass
 			except Test.RunError as e:
 				logger.error( "Failed running test `%s`" % test.name )
 				logger.debug( str( e ))
 
-			# store the results
-			if store:
-				self._store_result( result )
-				logger.info( "Stored results!" )
-			else:
-				# TODO
-				# ask the user if he wants to store the results
-				pass
 
 			logger.info( 80*"-" )
 
