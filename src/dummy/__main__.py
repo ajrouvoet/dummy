@@ -50,21 +50,49 @@ parser.add_argument(
 	action="store_true"
 )
 
-# `dummy run [-s] <name>`
-runner = sub.add_parser( 'run', help="run tests" )
-runner.set_defaults( func='run' )
-runner.add_argument(
+common_args = argparse.ArgumentParser( add_help=False )
+common_args.add_argument(
 	'tests',
 	help="names of the tests to run",
 	nargs="*"
 )
-runner.add_argument(
+common_args.add_argument(
 	'-S',
 	'--suite',
 	help="names of the suites to run",
 	action="append",
 	default=[]
 )
+common_args.add_argument(
+	'-x',
+	'--exclude',
+	help="Exclude a test to be run",
+	action="append",
+	default=[]
+)
+common_args.add_argument(
+	'-t',
+	'--target',
+	help="Run a specific target",
+	action="append",
+	default=[]
+)
+common_args.add_argument(
+	'-T',
+	'--alltargets',
+	help="Run all targets",
+	action="store_true",
+)
+common_args.add_argument(
+	'-c',
+	'--commit',
+	help="Run tests against a specific commit",
+	action="store"
+)
+
+# `dummy run [-s] <name>`
+runner = sub.add_parser( 'run', help="run tests", parents=[ common_args ])
+runner.set_defaults( func='run' )
 runner.add_argument(
 	'-!',
 	'--complement',
@@ -77,71 +105,13 @@ runner.add_argument(
 	help="Prevent storage of the test results",
 	action="store_true"
 )
-runner.add_argument(
-	'-x',
-	'--exclude',
-	help="Exclude a test to be run",
-	action="append",
-	default=[]
-)
-runner.add_argument(
-	'-t',
-	'--target',
-	help="Run a specific target",
-	action="append",
-	default=[]
-)
-runner.add_argument(
-	'-T',
-	'--alltargets',
-	help="Run all targets",
-	action="store_true",
-)
-runner.add_argument(
-	'-c',
-	'--commit',
-	help="Run tests against a specific commit",
-	action="store"
-)
 
-stat = sub.add_parser( 'stat', help="Statistics gathering" )
+stat = sub.add_parser( 'stat', help="Statistics gathering", parents=[ common_args ])
 stat.set_defaults( func='stat', alltargets=False, complement=False )
-stat.add_argument(
-	'tests',
-	help="names of the tests to inspect",
-	nargs="*"
-)
-stat.add_argument(
-	'-S',
-	'--suite',
-	help="names of the suites to inspect",
-	action="append",
-	default=[]
-)
 stat.add_argument(
 	'-m',
 	'--metric',
 	help="Show a specific metric or multiple metrics",
-	action="append",
-	default=[]
-)
-stat.add_argument(
-	'-t',
-	'--target',
-	help="Calculate result of a specific target",
-	action="append",
-	default=[]
-)
-stat.add_argument(
-	'-c',
-	'--commit',
-	help="Show results of a specific committish",
-	action="store"
-)
-stat.add_argument(
-	'-x',
-	'--exclude',
-	help="Exclude a test result",
 	action="append",
 	default=[]
 )
@@ -153,52 +123,14 @@ stat.add_argument(
 	default=[]
 )
 
-show = sub.add_parser( 'show', help="results browsing" )
+show = sub.add_parser( 'show', help="results browsing", parents=[ common_args ] )
 show.set_defaults( func='show', complement=False )
-show.add_argument(
-	'tests',
-	help="names of the tests to inspect",
-	nargs="*"
-)
-show.add_argument(
-	'-S',
-	'--suite',
-	help="names of the suites to inspect",
-	action="append",
-	default=[]
-)
-show.add_argument(
-	'-x',
-	'--exclude',
-	help="Exclude a test result",
-	action="append",
-	default=[]
-)
 show.add_argument(
 	'-m',
 	'--metric',
 	help="Show a specific metric or multiple metrics",
 	action="append",
 	default=[]
-)
-show.add_argument(
-	'-t',
-	'--target',
-	help="Show result of a specific target",
-	action="append",
-	default=[]
-)
-show.add_argument(
-	'-T',
-	'--alltargets',
-	help="Show results for all targets",
-	action="store_true",
-)
-show.add_argument(
-	'-c',
-	'--commit',
-	help="Show results of a specific committish",
-	action="store"
 )
 show.add_argument(
 	'-p',
