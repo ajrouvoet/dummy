@@ -64,13 +64,12 @@ def _parse_results( args ):
 	return manager
 
 def show( args ):
-	manager = _parse_results( args )
-
 	# check if any formatting options were given
+	# do this first as it can be verified quickly
 	if args.plot:
 		from dummy.viewer.formatting import PlotFormatter
 		formatter = PlotFormatter
-	elif hasattr( args, 'format' ):
+	elif hasattr( args, 'format' ) and args.format is not None:
 		# try to find a formatter with that name
 		from dummy.viewer.formatting import Formatter
 		formatter = Formatter.get( args.format )
@@ -78,15 +77,12 @@ def show( args ):
 		from dummy.viewer.formatting import LogFormatter
 		formatter = LogFormatter
 
+	manager = _parse_results( args )
+
 	# format them in some way
 	manager.format( metrics=args.metric, formatter=formatter )
 
 def stat( args ):
-	manager = _parse_results( args )
-	assert len( manager.results ) > 0, \
-		"No results to calculate statistics for (have you specified a test?)"
-
-
 	stats = {}
 	stat_names = args.stat
 	# If no statistics given, load all configured statistics.
@@ -102,11 +98,20 @@ def stat( args ):
 		assert stat is not None, "Statistic `%s` is not configured" % name
 
 		# parse the config
-		s = Statistic.parse( name, stat )
+		stats[ name ] = Statistic.parse( name, stat )
 
-		# compute the statistic
-		stats[ name ] = s.gather( manager.results )
+	# do this after the stats have been parsed
+	# as it might take quite a while
+	# and the parameters must thus be validated before results are loaded
+	manager = _parse_results( args )
+	assert len( manager.results ) > 0, \
+		"No results to calculate statistics for (have you specified a test?)"
+
+	# compute the statistic
+	values = {}
+	for name, s in stats.items():
+		values[ name ] = s.gather( manager.results )
 
 	# format the stats
 	formatter = LogFormatter()
-	formatter.format( stats )
+	formatter.format( values )
