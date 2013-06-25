@@ -111,7 +111,7 @@ class CCoverageCollector( Collector ):
 			out = fh.read()
 
 		try:
-			return lcov.parse( out, self.branch_coverage )
+			return lcov.parse( out )
 		except TypeError as e:
 			logger.warn( "Unable to parse lcov data: `%s`" % e )
 			return {}
