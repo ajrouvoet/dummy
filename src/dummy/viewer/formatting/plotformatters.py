@@ -34,7 +34,7 @@ try:
 			xlabels = [ r.test.name for r in results ]
 
 			pylab.title( 'Metric values per test (commit: %s)' % results[0].commit, fontsize=22 )
-			pylab.xticks( rotation=20 )
+			pylab.xticks( rotation=90 )
 			pylab.grid( True, markevery='integer' )
 			pylab.xlabel( 'tests', fontsize=16 )
 			pylab.margins( 0.05 )
@@ -80,8 +80,8 @@ try:
 			# create the plots
 			plots = []
 			x = numpy.arange( len( results ))
-			margin = 0.1 / len( metrics )
-			width = min( 0.5, 0.8 / len( metrics ))
+			margin = 0.2 / len( metrics )
+			width = 0.8 / len( metrics )
 			colors = [
 				( i/( 2 * len( metrics )), i/len(metrics), 0.8 )
 				for i in range( 1, len( metrics ) + 1)
@@ -89,9 +89,14 @@ try:
 
 			for i, metric in enumerate( metrics ):
 				# compute the bar heights
-				y = [ t.get_metric( metric ) for t in results ]
+				y = [ t.get_metric( metric ) or 0 for t in results ]
 
-				plot = pylab.bar( x + i*width + i*margin, y, width=width, color=colors[i] )
+				plot = self.bar(
+					x + 0.5 + i*width + ( i ) * margin,
+					y,
+					width=width,
+					color=colors[i],
+				)
 				plots.append( plot )
 
 				pylab.setp( plot,
@@ -104,6 +109,9 @@ try:
 
 			# and show it
 			pylab.show()
+
+		def bar( self, *args, **kwargs ):
+			return pylab.bar( *args, **kwargs )
 
 except ImportError:
 	logger.debug( "matplotlib is not installed, PlotFormatter not available." )
