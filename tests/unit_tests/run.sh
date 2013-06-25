@@ -1,5 +1,8 @@
 #!/bin/bash
 
+ROOT="$( cd "$0/../.."; pwd )"
+PYTHONPATH="$ROOT/src/:$PYTHONPATH"
+
 if [ "$1" == '' ]
 then
 	echo "Test script run without argument";

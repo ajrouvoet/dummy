@@ -22,16 +22,12 @@ class TestResultTestCase( unittest.TestCase ):
 	def setUp( self ):
 		self.testresult = TestResult( TEST_MOCK, START_TIME, STOP_TIME,
 									TARGET, commit=COMMIT )
-	
+
 	def test_serialize( self ):
 		serialized = self.testresult.serialize()
-		
+
 		self.assertEqual( TEST_MOCK.name, serialized[ 'name' ] )
 		self.assertEqual( START_TIME.isoformat( " " ), serialized[ 'started' ] )
 		self.assertEqual( STOP_TIME.isoformat( " " ), serialized[ 'completed' ] )
 		self.assertEqual( TARGET, serialized[ 'target' ] )
 		self.assertEqual( COMMIT, serialized[ 'commit' ] )
-
-	def suite():
-		tests = ['test_serialize']
-		return unittest.TestSute( map( TestResultTestCase, tests ))
