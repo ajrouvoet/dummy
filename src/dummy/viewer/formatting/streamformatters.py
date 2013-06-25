@@ -58,7 +58,7 @@ class LogFormatter( Formatter ):
 		if type( entry ) == list:
 			entry = dict( enumerate( entry ))
 
-		for key, value in sorted( entry.items() ):
+		for key, value in entry.items():
 			if type( value ) in ( list, dict ):
 				printer.info( colored( "+ ", 'white' ) + colored( key, 'green' ) + ":" )
 				logformatter.indent()

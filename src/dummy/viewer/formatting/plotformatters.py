@@ -17,8 +17,6 @@ try:
 			self.figure = pylab.figure( facecolor='white' )
 
 		def format_results( self, results, *metrics ):
-			assert len( results ) > 0, "No results to format"
-
 			self.setup( results )
 
 			try:

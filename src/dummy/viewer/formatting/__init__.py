@@ -1,4 +1,5 @@
 import logging
+from collections import OrderedDict
 
 __all__ = ( "Formatter", "ResultFormatter" )
 logger = logging.getLogger( __name__ )
@@ -36,7 +37,10 @@ class Formatter( object ):
 	def format_results( self, results, *metrics ):
 		# per default we serialize the results as dicts
 		# and pass it to the normal formatter
-		serialized = { "%s (%s)" % ( s.test.name, s.commit ): s.serialize() for s in results }
+		serialized = OrderedDict([
+			( "%s (%s) [%s]" % ( s.test.name, s.commit, s.target ), s.serialize() )
+			for s in results
+		])
 
 		# filter the metrics
 		for org, s in zip( results, serialized.values() ):

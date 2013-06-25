@@ -6,20 +6,6 @@ from dummy.utils import Printer
 
 logger = logging.getLogger( __name__ )
 
-_lheader = \
-"""
-\\begin{{table}}
-	\\begin{{tabular}}{{ | l | {coldefs} }}
-		{colhead}
-"""
-
-_lfooter = \
-""" \\end{tabular}
-\\end{table}
-"""
-
-_printer = Printer( indent="\t" )
-
 class LatexPrinter( Printer ):
 
 	def __init__( self, indent="\t" ):

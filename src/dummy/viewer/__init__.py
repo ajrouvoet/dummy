@@ -13,15 +13,21 @@ class ResultManager:
 	"""
 	def __init__( self ):
 		self.results = []
+		self.targets = []
 
 	def load_results( self, commit=git.describe(), targets=[ config.DEFAULT_TARGET ], tests=[] ):
 		""" Load results based on the passed commit, targets and tests
 		"""
+		# append new targets to the target list
+		self.targets += [ t for t in targets if t not in self.targets ]
+
 		for target in targets:
 			config.set_target( target )
+
 			for test in tests:
 				try:
 					self.add_result( JsonStorageProvider.load( commit, target, test ))
+					logger.debug( "Found result: %s, %s, %s" % ( commit, target, test ))
 				except ValueError as e:
 					logger.error( "No test results exists yet for test `%s`" % test.name )
 
@@ -30,20 +36,10 @@ class ResultManager:
 		"""
 		self.results.append( result )
 
-	def format( self, metrics, formatter=LogFormatter ):
-		""" Format the results into the specified format.
-
-			.. kwargs:
-				.. formatter:
-					formatter to use to format the results;
-					defaults to 'dummy.viewer.formatting.LogFormatter'
-
-			:return formatter.format return value
-
-			:raises AssertionError: When the method is not supported.
-		"""
-		# format the results using the selected formatter
-		return formatter().format_results( self.results, *metrics )
+	def iter_per_target( self ):
+		for target in self.targets:
+			for result in [ r for r in self.results if r.target == target ]:
+				yield result
 
 def _parse_results( args ):
 	# discover the commit
@@ -80,7 +76,7 @@ def show( args ):
 	manager = _parse_results( args )
 
 	# format them in some way
-	manager.format( metrics=args.metric, formatter=formatter )
+	formatter().format_results( list( manager.iter_per_target() ), *args.metric )
 
 def stat( args ):
 	stats = {}
