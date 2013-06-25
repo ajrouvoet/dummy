@@ -40,10 +40,11 @@ sys.path.append(
 )
 
 class CommonArguments( argparse.ArgumentParser ):
-	""" Arguments common to all dummy options.
+	""" Arguments common to all dummy commands
 	"""
+
 	def __init__( self, **kwargs ):
-		kwargs['add_help'] = False
+		kwargs[ 'add_help' ] = False
 		super( CommonArguments, self ).__init__( **kwargs )
 
 		self.add_argument(
@@ -86,6 +87,7 @@ class CommonArguments( argparse.ArgumentParser ):
 		)
 
 class DummyArgparser( argparse.ArgumentParser ):
+
 	@classmethod
 	def build( cls, **kwargs ):
 		""" Build a Dummy Argparser.
@@ -144,7 +146,9 @@ class DummyArgparser( argparse.ArgumentParser ):
 	def add_stat( self ):
 		""" Add the stat command to subparser.
 		"""
-		stat = self.commands.add_parser( 'stat', help="Statistics gathering", parents=[ CommonArguments() ])
+		stat = self.commands.add_parser(
+			'stat', help="Statistics gathering", parents=[ CommonArguments() ]
+		)
 		stat.set_defaults( func='stat', alltargets=False, complement=False )
 		stat.add_argument(
 			'-m',
@@ -161,11 +165,12 @@ class DummyArgparser( argparse.ArgumentParser ):
 			default=[]
 		)
 
-
 	def add_show( self ):
 		""" Add the show command to subparser.
 		"""
-		show = self.commands.add_parser( 'show', help="results browsing", parents=[ CommonArguments() ] )
+		show = self.commands.add_parser(
+			'show', help="results browsing", parents=[ CommonArguments() ]
+		)
 		show.set_defaults( func='show', complement=False )
 		show.add_argument(
 			'-m',
