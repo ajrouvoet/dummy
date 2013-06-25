@@ -1,7 +1,0 @@
-#!/usr/bin/env python2
-
-import dummy
-
-if __name__ == "__main__":
-	import sys
-	sys.exit(dummy.main())
