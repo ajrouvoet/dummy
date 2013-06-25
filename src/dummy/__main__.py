@@ -40,12 +40,12 @@ sys.path.append(
 )
 
 class CommonArguments( argparse.ArgumentParser ):
-	"""Arguments common to all dummy options.
+	""" Arguments common to all dummy options.
 	"""
 	def __init__( self, **kwargs ):
 		kwargs['add_help'] = False
 		super( CommonArguments, self ).__init__( **kwargs )
-		
+
 		self.add_argument(
 			'tests',
 			help="names of the tests to run",
@@ -103,19 +103,30 @@ class DummyArgparser( argparse.ArgumentParser ):
 			help="output stacktrace on error",
 			action="store_true"
 		)
-		
+
 		# Add subcommands
-		commands = parser.add_subparsers( help = "Dummy commands" )
-		parser.add_run( commands )
-		parser.add_stat( commands )
-		parser.add_show( commands )
+		parser.add_run()
+		parser.add_stat()
+		parser.add_show()
 
 		return parser
-		
-	def add_run( self, subparser ):
+
+	@property
+	def commands( self ):
+		""" Lazyily load a subparser for dummy commands.
+
+			Note: This cannot be used in __init__, because each add_parser
+			is also a DummyArgparser.
+		"""
+		if not hasattr( self, '_commands' ):
+			self._commands = self.add_subparsers( help = "Dummy commands" )
+
+		return self._commands
+
+	def add_run( self ):
 		""" Add the run command to subparser.
 		"""
-		runner = subparser.add_parser( 'run', help="run tests", parents=[ CommonArguments() ])
+		runner = self.commands.add_parser( 'run', help="run tests", parents=[ CommonArguments() ])
 		runner.set_defaults( func='run' )
 		runner.add_argument(
 			'-!',
@@ -130,10 +141,10 @@ class DummyArgparser( argparse.ArgumentParser ):
 			action="store_true"
 		)
 
-	def add_stat( self, subparser ):
+	def add_stat( self ):
 		""" Add the stat command to subparser.
 		"""
-		stat = subparser.add_parser( 'stat', help="Statistics gathering", parents=[ CommonArguments() ])
+		stat = self.commands.add_parser( 'stat', help="Statistics gathering", parents=[ CommonArguments() ])
 		stat.set_defaults( func='stat', alltargets=False, complement=False )
 		stat.add_argument(
 			'-m',
@@ -151,10 +162,10 @@ class DummyArgparser( argparse.ArgumentParser ):
 		)
 
 
-	def add_show( self, subparser ):
+	def add_show( self ):
 		""" Add the show command to subparser.
 		"""
-		show = subparser.add_parser( 'show', help="results browsing", parents=[ CommonArguments() ] )
+		show = self.commands.add_parser( 'show', help="results browsing", parents=[ CommonArguments() ] )
 		show.set_defaults( func='show', complement=False )
 		show.add_argument(
 			'-m',
