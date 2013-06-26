@@ -102,33 +102,6 @@ class TimerEngine( Engine ):
 
 		self.duration = self.duration + ( result.completed - result.started )
 
-class ConditionalFrequencyEngine( Engine ):
-	""" Computes frequency of metric2=E output based on metric1=R value.
-	"""
-
-	def __init__( self, metric1, metric2, metric2_value, preformat=(lambda x: x) ):
-		super( ConditionalFrequencyEngine, self ).__init__()
-		self.metric1 = metric1
-		self.metric2 = metric2
-		self.metric2_value = metric2_value
-		self.preformat = preformat
-
-	def run( self, results ):
-		matches={}
-		totals={}
-		for result in results:
-			metric2_out = result.get_metric( self.metric2 )
-			for item in self.preformat( result.get_metric( self.metric1 ) ):
-				if metric2_out == self.metric2_value:
-					matches[item] = matches.get( item, 0 ) + 1
-				totals[item] = totals.get( item, 0 ) + 1
-
-		#totals={}
-		freqs={}
-		for key, value in totals.items():
-			freqs[key] = (matches.get( key, 0 ) * 1.0) / totals[key]
-		return freqs
-
 class CCoverageOverviewEngine( Engine ):
 
 	def __init__( self ):
