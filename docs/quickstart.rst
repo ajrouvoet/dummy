@@ -4,10 +4,19 @@ This chapter will describe how to quickly get Dummy up and running.
 
 Installation
 -----------------
-.. todo::
-	Running virtualenv.sh.
-	Make install-virt.
+The installation process uses the ``setup.py`` file, which will install dummy,
+and the required dependecies in your python installation.
+To start the setup process execute the following command::
 
+    python setup.py install
+
+After installation completes, you should be able to run Dummy from the terminal::
+
+    dummy --help
+
+
+Configuring Dummy
+-----------------
 Tests have to be configured in a certain way for Dummy.
 The common testing folder is setup using the following::
 
@@ -23,17 +32,17 @@ In the common case the ``run.sh`` executes a ``make clean`` and ``make`` in the 
 See for an example :download:`this example run.sh <code/run.sh>`.
 This way Dummy is independent of the specific testing method, because it can be implemented by the developer himself.
 
-Configuring Dummy
------------------
+Dummy configuration file
+^^^^^^^^^^^^^^^^^^^^^^^^
 To see how the Dummy configuration is structured, copy the ``config/default.py`` from the Dummy source directory, to the directory from which you want to run tests.
-Rename ``defaults.py`` to ``dummy_config.py``.
+Rename ``defaults.py`` to ``dummyconfig.py``.
 
 To see which tests are passing and which are failing, we are now going to add a Pass/Fail collector to the configuration file.
 Import the Pass/Fail collector by adding the following import statement under the ``import os`` line::
 
 	from dummy.collectors.generic import PassFailCollector
 
-Next add this :term:`collector` to the list of :term:`metric` you want to collect ``METRICS``::
+Next add this :term:`collector` to the list of :term:`metrics <metric>` you want to collect: ``METRICS``::
 
 	METRICS = {
 		# passing/failing of a test is configured as a collector
@@ -51,7 +60,7 @@ Let's add the counting :term:`engine` as a Statistic. First import ``CountEngine
 	from dummy.statistics.generic import CountEngine
 
 Next add the following to the list of configured Statistics, ``STATISTICS``::
-	
+
 	STATISTICS = {
 		# we can configure what statistics are gathered over the different tests
 		# several statistics engines exist in the python module `dummy.statistics.generic`
