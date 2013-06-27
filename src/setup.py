@@ -1,30 +1,27 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
 	name='dummy',
-	version='0.6.1',
+	version='1.0.0',
 	description='A test results framework',
 	author='A.J. Rouvoet, E. Schoute and A.B. Booij',
 	author_email='a.j.rouvoet_at_gmail.com',
+	license='MIT',
+	keywords = 'test testing results framework',
 	include_package_data=True,
 	install_requires=[
     	'colorlog',
 		'termcolor',
 		'python-dateutil',
-		'numpy',
-		'matplotlib'
     ],
-	packages=[
-    	'dummy',
-		'dummy.runner',
-		'dummy.runner.collectors',
-		'dummy.statistics',
-		'dummy.utils',
-		'dummy.viewer',
-		'dummy.viewer.formatting',
-    ],
-	scripts = [
-    	'bin/dummy',
-    ],
+    extras_require={
+    	'plot': [ 'numpy>=1.4.1', 'matplotlib' ]
+    },
+	packages=find_packages(),
+	entry_points = {
+		'console_scripts': [
+			'dummy = dummy.__main__:main'
+		]
+    }
 )
